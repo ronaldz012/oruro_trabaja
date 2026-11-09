@@ -1,0 +1,50 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Panel del postulante · Oruro Trabaja{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Panel del postulante</h1>
+  <p class="page-subtitle">Bienvenido, {{ user.first_name|default:user.email }}.</p>
+
+  {% if user.celular_verificado %}
+    <div class="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+      <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+      Celular verificado
+    </div>
+  {% endif %}
+
+  <div class="mt-6 grid gap-4 sm:grid-cols-2">
+    <div class="card">
+      <p class="text-sm text-text-muted">Mis postulaciones</p>
+      <p class="mt-1 text-3xl font-extrabold text-secondary-900">{{ resumen.totales.postulaciones }}</p>
+    </div>
+    <div class="card">
+      <p class="text-sm text-text-muted">Ofertas disponibles</p>
+      <p class="mt-1 text-3xl font-extrabold text-secondary-900">{{ resumen.totales.ofertas_disponibles }}</p>
+    </div>
+  </div>
+
+  <div class="card mt-6 p-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 class="section-title">Completa tu perfil</h2>
+        <p class="mt-1 text-sm text-text-muted">
+          Tu cuenta ya está activa. Necesitás más de 80 % para postular; el CV es obligatorio.
+        </p>
+      </div>
+      <a href="{% url 'postulantes:perfil' %}" class="btn-primary w-auto px-4 py-2 text-sm">Editar perfil</a>
+    </div>
+
+    <div class="mt-4 h-2 overflow-hidden rounded-full bg-secondary-100">
+      <div class="h-full rounded-full bg-primary-600" style="width: {{ completitud.porcentaje }}%"></div>
+    </div>
+    <div class="mt-2 flex items-center justify-between gap-3 text-xs text-text-muted">
+      <span>{{ completitud.porcentaje }} % completo</span>
+      {% if completitud.puede_postular %}
+        <span class="font-semibold text-emerald-700">Ya podés postular</span>
+      {% else %}
+        <span>Falta: {{ completitud.faltantes|join:", " }}</span>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="min-h-screen bg-background lg:flex">
+  {% if user.is_authenticated %}
+    {% if user.role.codigo == "POSTULANTE" %}
+      {% include "partials/sidebar_postulante.html" %}
+    {% elif user.role.codigo == "EMPRESA" %}
+      {% include "partials/sidebar_empresa.html" %}
+    {% elif user.role.codigo == "SUPERADMIN" %}
+      {% include "partials/sidebar_gador.html" %}
+    {% endif %}
+  {% endif %}
+
+  <div id="sidebar-backdrop"
+       data-sidebar-close
+       aria-hidden="true"
+       class="fixed inset-0 z-40 hidden bg-secondary-950/50 lg:hidden"></div>
+
+  <div class="min-w-0 flex-1">
+    {% include "partials/dashboard_header.html" with mostrar_menu=True %}
+
+    <main class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+      {% include "partials/messages.html" %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<noscript>
+  <style>
+    #sidebar { position: static; transform: none; display: flex; width: 100%; height: auto; }
+    #sidebar-backdrop { display: none; }
+  </style>
+</noscript>
+
+<script>
+  var sidebar = document.getElementById('sidebar');
+  var backdrop = document.getElementById('sidebar-backdrop');
+  var toggle = document.getElementById('sidebar-toggle');
+
+  function abrir() {
+    sidebar.classList.remove('-translate-x-full');
+    backdrop.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function cerrar() {
+    sidebar.classList.add('-translate-x-full');
+    backdrop.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  toggle.addEventListener('click', function () {
+    if (sidebar.classList.contains('-translate-x-full')) abrir();
+    else cerrar();
+  });
+
+  document.querySelectorAll('[data-sidebar-close]').forEach(function (el) {
+    el.addEventListener('click', cerrar);
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') cerrar();
+  });
+
+  var userMenu = document.getElementById('user-menu');
+  var userMenuBoton = document.getElementById('user-menu-boton');
+
+  function abrirMenuUsuario() {
+    userMenu.classList.remove('hidden');
+    userMenuBoton.setAttribute('aria-expanded', 'true');
+  }
+
+  function cerrarMenuUsuario() {
+    userMenu.classList.add('hidden');
+    userMenuBoton.setAttribute('aria-expanded', 'false');
+  }
+
+  userMenuBoton.addEventListener('click', function () {
+    if (userMenu.classList.contains('hidden')) abrirMenuUsuario();
+    else cerrarMenuUsuario();
+  });
+
+  document.addEventListener('click', function (event) {
+    if (!userMenu.classList.contains('hidden')
+        && !userMenu.contains(event.target)
+        && !userMenuBoton.contains(event.target)) {
+      cerrarMenuUsuario();
+    }
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') cerrarMenuUsuario();
+  });
+
+  sidebar.querySelectorAll('a').forEach(function (link) {
+    link.addEventListener('click', function () {
+      if (window.innerWidth < 1024) cerrar();
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,36 @@
+<div id="id_{{ field_name }}_tag_root">
+  <label for="id_{{ field_name }}_tag_search" class="block text-sm font-semibold text-secondary-800">
+    {{ label }}
+  </label>
+
+  <div id="id_{{ field_name }}_tag_chips" class="mt-2 flex flex-wrap gap-2">
+    {% for item in selected %}
+      <span class="tag-chip inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-secondary-800">
+        {{ item.nombre }}
+        <input type="hidden" name="{{ field.html_name }}" value="{{ item.id }}">
+        <button type="button" class="tag-remove text-secondary-400 hover:text-danger" aria-label="Quitar {{ item.nombre }}">×</button>
+      </span>
+    {% endfor %}
+  </div>
+
+  <input type="text"
+         id="id_{{ field_name }}_tag_search"
+         list="{{ datalist_id }}"
+         autocomplete="off"
+         class="input mt-2"
+         placeholder="Escribí y elegí una sugerencia">
+
+  <datalist id="{{ datalist_id }}">
+    {% for item in suggestions %}
+      <option value="{{ item.nombre }}" data-id="{{ item.pk }}"></option>
+    {% endfor %}
+  </datalist>
+
+  <p id="id_{{ field_name }}_tag_error" class="mt-1 text-xs font-medium text-danger" role="alert"></p>
+  {% if help %}
+    <p class="mt-1 text-xs text-text-muted">{{ help }}</p>
+  {% endif %}
+  {% for error in field.errors %}
+    <p class="mt-1 text-xs font-medium text-danger">{{ error }}</p>
+  {% endfor %}
+</div>

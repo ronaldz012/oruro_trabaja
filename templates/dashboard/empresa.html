@@ -1,0 +1,108 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Panel de empresa · Oruro Trabaja{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Panel de empresa</h1>
+  <p class="page-subtitle">Estado de tu empresa y resumen de actividad.</p>
+
+  {% if empresa is None %}
+    <div class="alert-error mt-6" role="alert">
+      Tu usuario no tiene una empresa asociada. Contacta a GADOR.
+    </div>
+  {% else %}
+    {% if empresa.estado == "PENDIENTE_VALIDACION" %}
+      <div class="alert-warning mt-6" role="status">
+        <p class="font-semibold">Tu empresa está pendiente de validación por GADOR.</p>
+        <p class="mt-1">Podés iniciar sesión y ver el estado. La publicación de ofertas se habilita cuando GADOR apruebe la empresa.</p>
+      </div>
+    {% elif empresa.estado == "APROBADA" %}
+      <div class="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status">
+        <p class="font-semibold">Empresa aprobada por GADOR.</p>
+        <p class="mt-1">La empresa está habilitada para publicar ofertas y recibir postulaciones.</p>
+      </div>
+    {% elif empresa.estado == "RECHAZADA" %}
+      <div class="alert-error mt-6" role="alert">
+        <p class="font-semibold">Tu empresa fue rechazada por GADOR.</p>
+        {% if empresa.motivo_rechazo %}<p class="mt-1">Motivo: {{ empresa.motivo_rechazo }}</p>{% endif %}
+        <p class="mt-1">Contacta a GADOR para corregir los datos y volver a solicitar la validación.</p>
+      </div>
+    {% elif empresa.estado == "SUSPENDIDA" %}
+      <div class="alert-error mt-6" role="alert">
+        <p class="font-semibold">Tu empresa está suspendida por GADOR.</p>
+        <p class="mt-1">No puede publicar ofertas mientras dure la suspensión.</p>
+      </div>
+    {% endif %}
+
+    <div class="card mt-6 p-6">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div class="flex items-start gap-4">
+          {% if empresa.logo %}
+            <img src="{{ empresa.logo.url }}" alt="Logo de la empresa" class="h-16 w-16 rounded-xl object-cover ring-1 ring-border">
+          {% else %}
+            <div class="grid h-16 w-16 place-items-center rounded-xl bg-secondary-100 text-lg font-bold text-secondary-500">
+              {{ empresa.razon_social|first|upper }}
+            </div>
+          {% endif %}
+          <div>
+            <h2 class="card-title">{{ empresa.razon_social }}</h2>
+            <p class="mt-1 text-sm text-text-muted">NIT {{ empresa.nit }} · {{ empresa.rubro.nombre }}</p>
+            <span class="chip mt-2 bg-secondary-100 px-3 py-1 text-secondary-700">
+              {{ empresa.get_estado_display }}
+            </span>
+          </div>
+        </div>
+
+        {% if empresa.estado == "APROBADA" %}
+          <a href="{% url 'ofertas:empresa_crear' %}" class="btn-primary w-auto px-4 py-2 text-sm">Nueva oferta</a>
+        {% else %}
+          <span class="btn-secondary w-auto cursor-not-allowed px-4 py-2 text-sm opacity-60">Publicar oferta · Requiere aprobación</span>
+        {% endif %}
+      </div>
+
+      <dl class="mt-5 grid gap-3 border-t border-border pt-5 text-sm sm:grid-cols-2">
+        <div>
+          <dt class="mini-label">Representante</dt>
+          <dd class="mt-1 text-secondary-800">{{ empresa.representante_nombres }} {{ empresa.representante_apellidos }}</dd>
+        </div>
+        <div>
+          <dt class="mini-label">CI del representante</dt>
+          <dd class="mt-1 text-secondary-800">{{ empresa.representante_ci }}</dd>
+        </div>
+        <div>
+          <dt class="mini-label">Email</dt>
+          <dd class="mt-1 text-secondary-800">{{ empresa.user.email }}</dd>
+        </div>
+        <div>
+          <dt class="mini-label">Celular</dt>
+          <dd class="mt-1 text-secondary-800">{{ empresa.user.celular|default:"—" }}</dd>
+        </div>
+        <div class="sm:col-span-2">
+          <dt class="mini-label">Dirección</dt>
+          <dd class="mt-1 text-secondary-800">{{ empresa.direccion }}</dd>
+        </div>
+        {% if empresa.descripcion %}
+          <div class="sm:col-span-2">
+            <dt class="mini-label">Descripción</dt>
+            <dd class="mt-1 text-secondary-800">{{ empresa.descripcion }}</dd>
+          </div>
+        {% endif %}
+      </dl>
+    </div>
+
+    <div class="mt-6 grid gap-4 sm:grid-cols-3">
+      <div class="card">
+        <p class="text-sm text-text-muted">Ofertas</p>
+        <p class="mt-1 text-3xl font-extrabold text-secondary-900">{{ resumen.totales.ofertas }}</p>
+      </div>
+      <div class="card">
+        <p class="text-sm text-text-muted">Postulaciones</p>
+        <p class="mt-1 text-3xl font-extrabold text-secondary-900">{{ resumen.totales.postulaciones }}</p>
+      </div>
+      <div class="card">
+        <p class="text-sm text-text-muted">Postulantes</p>
+        <p class="mt-1 text-3xl font-extrabold text-secondary-900">{{ resumen.totales.postulantes }}</p>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

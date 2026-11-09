@@ -1,0 +1,109 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Mis ofertas · Oruro Trabaja{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="page-title">Mis ofertas</h1>
+      <p class="page-subtitle">Creá y gestioná las ofertas de tu empresa.</p>
+    </div>
+    {% if puede_gestionar %}
+      {% if limite_alcanzado %}
+        <span class="btn-primary w-auto cursor-not-allowed px-4 py-2 text-sm opacity-60">Límite de {{ limite }} ofertas activas</span>
+      {% else %}
+        <a href="{% url 'ofertas:empresa_crear' %}" class="btn-primary w-auto px-4 py-2 text-sm">Nueva oferta</a>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  {% if empresa.estado == "PENDIENTE_VALIDACION" %}
+    <div class="alert-warning mt-6" role="status">
+      Tu empresa está pendiente de validación. Podrás crear ofertas cuando GADOR la apruebe.
+    </div>
+  {% elif empresa.estado == "RECHAZADA" %}
+    <div class="alert-error mt-6" role="alert">
+      Tu empresa fue rechazada. Contacta a GADOR antes de publicar ofertas.
+    </div>
+  {% elif empresa.estado == "SUSPENDIDA" %}
+    <div class="alert-error mt-6" role="alert">
+      Tu empresa está suspendida y no puede publicar ofertas.
+    </div>
+  {% elif limite_alcanzado %}
+    <div class="alert-warning mt-6" role="status">
+      Alcanzaste el límite de {{ limite }} ofertas activas. Cerrá una oferta para publicar otra.
+    </div>
+  {% endif %}
+
+  <div class="mt-5 flex flex-wrap gap-2">
+    <a href="{% url 'ofertas:empresa_lista' %}" class="pill {% if not estado_actual %}is-active{% endif %}">
+      Todas · {{ total }}
+    </a>
+    {% for estado in estados %}
+      <a href="?estado={{ estado.codigo }}" class="pill {% if estado_actual == estado.codigo %}is-active{% endif %}">
+        {{ estado.nombre }} · {{ estado.total }}
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.object_list %}
+    <div class="card mt-6 overflow-hidden p-0">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-176 text-left text-sm">
+          <thead class="border-b border-border bg-secondary-50 text-xs uppercase tracking-wide text-secondary-500">
+            <tr>
+              <th class="px-4 py-2 font-semibold">Oferta</th>
+              <th class="px-4 py-2 font-semibold">Estado</th>
+              <th class="px-4 py-2 font-semibold">Vistas</th>
+              <th class="px-4 py-2 font-semibold">Postulantes</th>
+              <th class="px-4 py-2 font-semibold">Creada</th>
+              <th class="px-4 py-2"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {% for oferta in page_obj %}
+              <tr class="hover:bg-secondary-50">
+                <td class="px-4 py-3">
+                  <p class="font-semibold text-secondary-900">{{ oferta.titulo }}</p>
+                  <p class="text-xs text-text-muted">{{ oferta.modalidad.nombre }} · {{ oferta.departamento.nombre }}</p>
+                  {% if oferta.motivo_revision and oferta.estado == "BORRADOR" %}
+                    <p class="mt-1 text-xs text-danger">GADOR: {{ oferta.motivo_revision }}</p>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-3">
+                  {% include "ofertas/_badge_oferta.html" with estado=oferta.estado nombre=oferta.get_estado_display %}
+                </td>
+                <td class="px-4 py-3 text-secondary-700">{{ oferta.vistas }}</td>
+                <td class="px-4 py-3 text-secondary-700">{{ oferta.total_postulaciones }}</td>
+                <td class="px-4 py-3 text-xs text-text-muted">{{ oferta.creado_en|date:"d/m/Y" }}</td>
+                <td class="px-4 py-3">
+                  <div class="flex flex-wrap items-center justify-end gap-3">
+                    <a href="{% url 'ofertas:empresa_detalle' oferta.pk %}" class="link text-xs">Ver</a>
+                    {% if oferta.estado == "BORRADOR" %}
+                      <a href="{% url 'ofertas:empresa_editar' oferta.pk %}" class="link text-xs">Editar</a>
+                      <form method="post" action="{% url 'ofertas:empresa_enviar' oferta.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="link text-xs">Enviar a revisión</button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% include "partials/pagination.html" %}
+  {% else %}
+    <div class="card mt-6 px-6 py-14 text-center">
+      <p class="text-sm font-semibold text-secondary-900">Todavía no tenés ofertas.</p>
+      <p class="mt-1 text-sm text-text-muted">
+        {% if puede_gestionar and not limite_alcanzado %}Creá la primera oferta para empezar a recibir postulantes.{% else %}Cuando tu empresa esté aprobada podrás crear ofertas.{% endif %}
+      </p>
+      {% if puede_gestionar and not limite_alcanzado %}
+        <a href="{% url 'ofertas:empresa_crear' %}" class="btn-primary mt-5 w-auto px-4 py-2 text-sm">Crear oferta</a>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock %}

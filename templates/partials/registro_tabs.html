@@ -1,0 +1,16 @@
+{% with namespace=request.resolver_match.namespace %}
+<div class="mb-5 flex gap-1 rounded-xl border border-border bg-surface p-1">
+  <a href="{% url 'postulantes:registro' %}"
+     class="flex-1 rounded-lg px-3 py-2 text-center text-sm font-semibold
+       {% if namespace == 'postulantes' %}bg-primary-600 text-white{% else %}text-secondary-600 hover:bg-secondary-50{% endif %}"
+     {% if namespace == 'postulantes' %}aria-current="page"{% endif %}>
+    Soy postulante
+  </a>
+  <a href="{% url 'empresas:registro' %}"
+     class="flex-1 rounded-lg px-3 py-2 text-center text-sm font-semibold
+       {% if namespace == 'empresas' %}bg-primary-600 text-white{% else %}text-secondary-600 hover:bg-secondary-50{% endif %}"
+     {% if namespace == 'empresas' %}aria-current="page"{% endif %}>
+    Soy empresa
+  </a>
+</div>
+{% endwith %}

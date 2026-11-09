@@ -1,0 +1,29 @@
+{% extends "auth.html" %}
+
+{% block title %}Registrar empresa · Oruro Trabaja{% endblock %}
+
+{% block card %}
+{% include "partials/registro_tabs.html" %}
+
+<div class="card p-6 sm:p-8">
+  <h1 class="page-title">Registra tu empresa</h1>
+  <p class="mt-2 text-sm text-text-muted">
+    Tu cuenta quedará <strong>pendiente de validación por GADOR</strong>. Podés iniciar sesión
+    para ver el estado, pero no publicar ofertas hasta ser aprobada.
+  </p>
+
+  {% include "partials/messages.html" %}
+
+  <form method="post" enctype="multipart/form-data" novalidate class="mt-6 space-y-4">
+    {% csrf_token %}
+    {% include "partials/form_fields.html" with form=form %}
+
+    <button type="submit" class="btn-primary">Registrar empresa</button>
+  </form>
+
+  <p class="mt-6 text-center text-sm text-text-muted">
+    ¿Ya tienes cuenta?
+    <a href="{% url 'accounts:login' %}" class="link">Inicia sesión</a>
+  </p>
+</div>
+{% endblock %}

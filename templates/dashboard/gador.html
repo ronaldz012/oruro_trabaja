@@ -1,0 +1,57 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Panel GADOR · Oruro Trabaja{% endblock %}
+
+{% block content %}
+  <h1 class="page-title">Panel GADOR</h1>
+  <p class="page-subtitle">Resumen general de la plataforma.</p>
+
+  <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="card">
+      <p class="text-sm text-text-muted">Usuarios</p>
+      <p class="mt-1 text-3xl font-extrabold text-secondary-900">{{ resumen.totales.usuarios }}</p>
+    </div>
+    <div class="card">
+      <p class="text-sm text-text-muted">Empresas</p>
+      <p class="mt-1 text-3xl font-extrabold text-secondary-900">{{ resumen.totales.empresas }}</p>
+    </div>
+    <div class="card">
+      <p class="text-sm text-text-muted">Postulantes</p>
+      <p class="mt-1 text-3xl font-extrabold text-secondary-900">{{ resumen.totales.postulantes }}</p>
+    </div>
+    <div class="card">
+      <p class="text-sm text-text-muted">Ofertas</p>
+      <p class="mt-1 text-3xl font-extrabold text-secondary-900">{{ resumen.totales.ofertas }}</p>
+    </div>
+    <div class="card">
+      <p class="text-sm text-text-muted">Postulaciones</p>
+      <p class="mt-1 text-3xl font-extrabold text-secondary-900">{{ resumen.totales.postulaciones }}</p>
+    </div>
+  </div>
+
+  <div class="mt-6 grid gap-4 sm:grid-cols-2">
+    <div class="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 class="section-title">Empresas pendientes de validación</h2>
+        <p class="mt-1 text-sm text-text-muted">
+          {{ empresas_pendientes }} empresa{{ empresas_pendientes|pluralize:"s" }} esperando revisión.
+        </p>
+      </div>
+      <a href="{% url 'empresas:gador_lista' %}?estado=PENDIENTE_VALIDACION" class="btn-primary w-auto px-4 py-2 text-sm">
+        Revisar empresas
+      </a>
+    </div>
+
+    <div class="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 class="section-title">Ofertas en revisión</h2>
+        <p class="mt-1 text-sm text-text-muted">
+          {{ ofertas_pendientes }} oferta{{ ofertas_pendientes|pluralize:"s" }} esperando publicación.
+        </p>
+      </div>
+      <a href="{% url 'ofertas:gador_lista' %}?estado=EN_REVISION_GADOR" class="btn-primary w-auto px-4 py-2 text-sm">
+        Revisar ofertas
+      </a>
+    </div>
+  </div>
+{% endblock %}

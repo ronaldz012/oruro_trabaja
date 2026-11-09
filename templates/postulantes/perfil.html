@@ -1,0 +1,354 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Mi perfil · Oruro Trabaja{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <h1 class="page-title">Mi perfil</h1>
+      <p class="page-subtitle">Completa tus datos para que las empresas conozcan tu experiencia.</p>
+    </div>
+    <a href="{% url 'dashboard:postulante' %}" class="btn-secondary w-auto self-end sm:self-auto">Volver al panel</a>
+  </div>
+
+  <section class="card mt-4 p-5">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-4">
+        {% if perfil.foto %}
+          <img src="{{ perfil.foto.url }}" alt="Foto de perfil" class="h-16 w-16 rounded-full object-cover ring-2 ring-primary-100">
+        {% else %}
+          <div class="grid h-16 w-16 place-items-center rounded-full bg-secondary-100 text-xl font-bold text-secondary-500">
+            {{ user.first_name|first|default:"P" }}
+          </div>
+        {% endif %}
+        <div>
+          <p class="text-base font-bold text-secondary-900">
+            {{ user.first_name }} {{ user.last_name }}
+          </p>
+          <p class="mt-1 text-xs text-text-muted">
+            <span id="perfil-titulo-texto">{% if formaciones %}{{ formaciones.0.titulo }}{% else %}Postulante{% endif %}</span>
+            · CI {{ perfil.ci }}
+          </p>
+        </div>
+      </div>
+      <div class="text-left sm:text-right">
+        <p id="perfil-porcentaje" class="text-2xl font-extrabold text-secondary-900">{{ completitud.porcentaje }}%</p>
+        {% if completitud.puede_postular %}
+          <p id="perfil-etiqueta" class="mini-label text-emerald-600">Podés postular</p>
+        {% else %}
+          <p id="perfil-etiqueta" class="mini-label text-amber-700">Falta para postular</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="mt-4 h-2 overflow-hidden rounded-full bg-secondary-100">
+      <div id="perfil-barra"
+           class="h-full rounded-full {% if completitud.puede_postular %}bg-emerald-600{% else %}bg-amber-500{% endif %}"
+           style="width: {{ completitud.porcentaje }}%"></div>
+    </div>
+
+    {% if completitud.puede_postular %}
+      <p id="perfil-estado" class="mt-2 text-xs font-semibold text-emerald-700">Tu perfil ya supera el 80 %: podés postular.</p>
+    {% else %}
+      <p id="perfil-estado" class="mt-2 text-xs font-medium text-amber-700">
+        Necesitás más de 80 % para postular. Te falta: {{ completitud.faltantes|join:", " }}.
+      </p>
+    {% endif %}
+
+    <form id="seccion-datos" method="post" action="{% url 'postulantes:perfil_datos' %}" enctype="multipart/form-data"
+          hx-post="{% url 'postulantes:perfil_datos' %}"
+          hx-target="#seccion-datos" hx-select="#seccion-datos" hx-swap="outerHTML"
+          hx-encoding="multipart/form-data"
+          class="mt-4 grid gap-4 border-t border-border pt-4 sm:grid-cols-2">
+      {% csrf_token %}
+      <div class="flex flex-wrap items-center justify-between gap-2 sm:col-span-2">
+        <h2 class="card-title">Datos personales</h2>
+        {% if completitud.por_clave.datos.completa %}
+          <span class="chip chip-ok px-2 py-1"><span class="mi mi-fill">check_circle</span> Completa · 10 %</span>
+        {% else %}
+          <span class="chip chip-alerta px-2 py-1">Incompleta · 10 %</span>
+        {% endif %}
+      </div>
+      <div class="max-w-md sm:col-span-2">
+        {% include "partials/field.html" with field=datos_form.foto %}
+      </div>
+      <div>
+        {% include "partials/field.html" with field=datos_form.direccion %}
+      </div>
+      <div>
+        {% include "partials/field.html" with field=datos_form.fecha_nacimiento %}
+      </div>
+      <div class="sm:col-span-2">
+        {% include "partials/field.html" with field=datos_form.presentacion %}
+      </div>
+      {% if datos_form.non_field_errors %}
+        <div class="alert-error sm:col-span-2" role="alert">
+          {% for error in datos_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+      {% endif %}
+      <div class="flex justify-end sm:col-span-2">
+        <button type="submit" class="btn-primary w-auto px-4 py-2 text-xs">Guardar datos</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="seccion-cv" class="card mt-4 p-5">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h2 class="card-title">CV en PDF</h2>
+      {% if completitud.por_clave.cv.completa %}
+        <span class="chip chip-ok px-2 py-1"><span class="mi mi-fill">check_circle</span> Completa · 25 %</span>
+      {% else %}
+        <span class="chip chip-alerta px-2 py-1">Pendiente · Obligatorio</span>
+      {% endif %}
+    </div>
+    <p class="mt-1 text-xs text-text-muted">Sin CV no podés superar el 80 % ni postular. Para cambiarlo, subí otro PDF: el archivo anterior se reemplaza.</p>
+    {% if perfil.cv %}
+      <div class="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-secondary-50 p-3">
+        <span class="text-sm text-secondary-800">{{ perfil.cv.name|cut:"postulantes/cv/" }}</span>
+        <a href="{% url 'postulantes:perfil_cv_descargar' %}" class="link text-xs">Descargar</a>
+      </div>
+    {% endif %}
+    <form method="post" action="{% url 'postulantes:perfil_cv' %}" enctype="multipart/form-data"
+          hx-post="{% url 'postulantes:perfil_cv' %}"
+          hx-target="#seccion-cv" hx-select="#seccion-cv" hx-swap="outerHTML"
+          hx-encoding="multipart/form-data"
+          class="mt-3 max-w-md space-y-3">
+      {% csrf_token %}
+      {% include "partials/form_fields.html" with form=cv_form %}
+      <button type="submit" class="btn-primary w-auto px-4 py-2 text-xs">{% if perfil.cv %}Reemplazar CV{% else %}Subir CV{% endif %}</button>
+    </form>
+  </section>
+
+  <section id="seccion-formacion" class="card mt-4 p-5">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h2 class="card-title">Formación académica</h2>
+      {% if completitud.por_clave.formacion.completa %}
+        <span class="chip chip-ok px-2 py-1"><span class="mi mi-fill">check_circle</span> Completa · 20 %</span>
+      {% else %}
+        <span class="chip chip-alerta px-2 py-1">Pendiente · 20 %</span>
+      {% endif %}
+    </div>
+    <p class="mt-1 text-xs text-text-muted">Podés tener varias; debe quedar al menos una.</p>
+    {% if formaciones %}
+      <ul class="mt-3 divide-y divide-border">
+        {% for formacion in formaciones %}
+          <li class="flex items-start justify-between gap-3 py-3">
+            <div>
+              <p class="text-sm font-semibold text-secondary-900">{{ formacion.titulo }}</p>
+              <p class="mt-1 text-xs text-text-muted">{{ formacion.institucion }} · {{ formacion.anio_titulacion }}{% if formacion.nro_titulo %} · Título {{ formacion.nro_titulo }}{% endif %}</p>
+            </div>
+            {% if puede_eliminar_formacion %}
+              <form method="post" action="{% url 'postulantes:formacion_eliminar' formacion.pk %}"
+                    hx-post="{% url 'postulantes:formacion_eliminar' formacion.pk %}"
+                    hx-target="#seccion-formacion" hx-select="#seccion-formacion" hx-swap="outerHTML">
+                {% csrf_token %}
+                <button type="submit" class="text-xs font-semibold text-danger hover:underline">Eliminar</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="mt-3 text-sm text-text-muted">Todavía no agregaste formación.</p>
+    {% endif %}
+    <details class="mt-3 border-t border-border pt-3" {% if not formaciones %}open{% endif %}>
+      <summary class="details-toggle link text-xs">+ Agregar formación</summary>
+      <form method="post" action="{% url 'postulantes:formacion_agregar' %}"
+            hx-post="{% url 'postulantes:formacion_agregar' %}"
+            hx-target="#seccion-formacion" hx-select="#seccion-formacion" hx-swap="outerHTML"
+            class="mt-3 grid gap-4 sm:grid-cols-2">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" with form=formacion_form %}
+        <div class="sm:col-span-2">
+          <button type="submit" class="btn-secondary w-auto px-4 py-2 text-xs">Agregar formación</button>
+        </div>
+      </form>
+    </details>
+  </section>
+
+  <section id="seccion-experiencia" class="card mt-4 p-5">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h2 class="card-title">Experiencia laboral</h2>
+      {% if completitud.por_clave.experiencia.completa %}
+        <span class="chip chip-ok px-2 py-1"><span class="mi mi-fill">check_circle</span> Completa · 20 %</span>
+      {% else %}
+        <span class="chip chip-alerta px-2 py-1">Pendiente · 20 %</span>
+      {% endif %}
+    </div>
+    <p class="mt-1 text-xs text-text-muted">Podés tener varias; debe quedar al menos una.</p>
+    {% if experiencias %}
+      <ul class="mt-3 divide-y divide-border">
+        {% for experiencia in experiencias %}
+          <li class="flex items-start justify-between gap-3 py-3">
+            <div>
+              <p class="text-sm font-semibold text-secondary-900">{{ experiencia.cargo }} · {{ experiencia.empresa }}</p>
+              <p class="mt-1 text-xs text-text-muted">{{ experiencia.anos }} año{{ experiencia.anos|pluralize:"s" }}{% if experiencia.descripcion %} · {{ experiencia.descripcion }}{% endif %}</p>
+            </div>
+            {% if puede_eliminar_experiencia %}
+              <form method="post" action="{% url 'postulantes:experiencia_eliminar' experiencia.pk %}"
+                    hx-post="{% url 'postulantes:experiencia_eliminar' experiencia.pk %}"
+                    hx-target="#seccion-experiencia" hx-select="#seccion-experiencia" hx-swap="outerHTML">
+                {% csrf_token %}
+                <button type="submit" class="text-xs font-semibold text-danger hover:underline">Eliminar</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="mt-3 text-sm text-text-muted">Todavía no agregaste experiencia laboral.</p>
+    {% endif %}
+    <details class="mt-3 border-t border-border pt-3" {% if not experiencias %}open{% endif %}>
+      <summary class="details-toggle link text-xs">+ Agregar experiencia</summary>
+      <form method="post" action="{% url 'postulantes:experiencia_agregar' %}"
+            hx-post="{% url 'postulantes:experiencia_agregar' %}"
+            hx-target="#seccion-experiencia" hx-select="#seccion-experiencia" hx-swap="outerHTML"
+            class="mt-3 grid gap-4 sm:grid-cols-2">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" with form=experiencia_form %}
+        <div class="sm:col-span-2">
+          <button type="submit" class="btn-secondary w-auto px-4 py-2 text-xs">Agregar experiencia</button>
+        </div>
+      </form>
+    </details>
+  </section>
+
+  <div class="mt-4 grid gap-4 lg:grid-cols-2">
+    <section id="seccion-habilidades" class="card p-5">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="card-title">Habilidades</h2>
+        {% if completitud.por_clave.habilidades.completa %}
+          <span class="chip chip-ok px-2 py-1"><span class="mi mi-fill">check_circle</span> Completa · 20 %</span>
+        {% else %}
+          <span class="chip chip-alerta px-2 py-1">{{ habilidades|length }} de 3 · 20 %</span>
+        {% endif %}
+      </div>
+      <p class="mt-1 text-xs text-text-muted">Mínimo 3. Para eliminar una, primero agregá otra.</p>
+      {% if habilidades %}
+        <div class="mt-3 flex flex-wrap gap-2">
+          {% for habilidad in habilidades %}
+            <span class="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-secondary-800">
+              {{ habilidad.habilidad.nombre }} · {{ habilidad.get_nivel_display }}
+              {% if puede_eliminar_habilidad %}
+                <form method="post" action="{% url 'postulantes:habilidad_eliminar' habilidad.pk %}"
+                      hx-post="{% url 'postulantes:habilidad_eliminar' habilidad.pk %}"
+                      hx-target="#seccion-habilidades" hx-select="#seccion-habilidades" hx-swap="outerHTML">
+                  {% csrf_token %}
+                  <button type="submit" class="text-secondary-400 hover:text-danger" aria-label="Eliminar habilidad">×</button>
+                </form>
+              {% endif %}
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <details class="mt-3 border-t border-border pt-3" {% if not habilidades %}open{% endif %}>
+        <summary class="details-toggle link text-xs">+ Agregar habilidad</summary>
+        <form method="post" action="{% url 'postulantes:habilidad_agregar' %}"
+              hx-post="{% url 'postulantes:habilidad_agregar' %}"
+              hx-target="#seccion-habilidades" hx-select="#seccion-habilidades" hx-swap="outerHTML"
+              class="mt-3 grid gap-4 sm:grid-cols-2">
+          {% csrf_token %}
+          {% include "partials/form_fields.html" with form=habilidad_form %}
+          <div class="sm:col-span-2">
+            <button type="submit" class="btn-secondary w-auto px-4 py-2 text-xs">Agregar habilidad</button>
+          </div>
+        </form>
+      </details>
+    </section>
+
+    <section id="seccion-idiomas" class="card p-5">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="card-title">Idiomas</h2>
+        {% if completitud.por_clave.idiomas.completa %}
+          <span class="chip chip-ok px-2 py-1"><span class="mi mi-fill">check_circle</span> Completa · 5 %</span>
+        {% else %}
+          <span class="chip chip-neutra px-2 py-1">Opcional · 5 %</span>
+        {% endif %}
+      </div>
+      <p class="mt-1 text-xs text-text-muted">Opcional. No se puede eliminar el último.</p>
+      {% if idiomas %}
+        <div class="mt-3 flex flex-wrap gap-2">
+          {% for idioma in idiomas %}
+            <span class="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-secondary-800">
+              {{ idioma.idioma.nombre }} · {{ idioma.get_nivel_display }}
+              {% if puede_eliminar_idioma %}
+                <form method="post" action="{% url 'postulantes:idioma_eliminar' idioma.pk %}"
+                      hx-post="{% url 'postulantes:idioma_eliminar' idioma.pk %}"
+                      hx-target="#seccion-idiomas" hx-select="#seccion-idiomas" hx-swap="outerHTML">
+                  {% csrf_token %}
+                  <button type="submit" class="text-secondary-400 hover:text-danger" aria-label="Eliminar idioma">×</button>
+                </form>
+              {% endif %}
+            </span>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <details class="mt-3 border-t border-border pt-3" {% if not idiomas %}open{% endif %}>
+        <summary class="details-toggle link text-xs">+ Agregar idioma</summary>
+        <form method="post" action="{% url 'postulantes:idioma_agregar' %}"
+              hx-post="{% url 'postulantes:idioma_agregar' %}"
+              hx-target="#seccion-idiomas" hx-select="#seccion-idiomas" hx-swap="outerHTML"
+              class="mt-3 grid gap-4 sm:grid-cols-2">
+          {% csrf_token %}
+          {% include "partials/form_fields.html" with form=idioma_form %}
+          <div class="sm:col-span-2">
+            <button type="submit" class="btn-secondary w-auto px-4 py-2 text-xs">Agregar idioma</button>
+          </div>
+        </form>
+      </details>
+    </section>
+  </div>
+
+  <datalist id="habilidades-sugeridas">
+    {% for nombre in habilidades_sugeridas %}<option value="{{ nombre }}">{% endfor %}
+  </datalist>
+  <datalist id="idiomas-sugeridos">
+    {% for nombre in idiomas_sugeridos %}<option value="{{ nombre }}">{% endfor %}
+  </datalist>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/htmx.min.js' %}"></script>
+<div id="perfil-toast" class="toast toast-info hidden"></div>
+<script>
+  var porcentaje = document.getElementById('perfil-porcentaje');
+  var barra = document.getElementById('perfil-barra');
+  var estado = document.getElementById('perfil-estado');
+  var etiqueta = document.getElementById('perfil-etiqueta');
+  var titulo = document.getElementById('perfil-titulo-texto');
+  var toast = document.getElementById('perfil-toast');
+
+  function eventoPerfil(event) {
+    var data = event.detail || {};
+    if (data.value && !data.porcentaje) data = data.value;
+
+    porcentaje.textContent = data.porcentaje + '%';
+    barra.style.width = data.porcentaje + '%';
+    if (data.titulo_principal) titulo.textContent = data.titulo_principal;
+
+    if (data.puede_postular) {
+      estado.textContent = 'Tu perfil ya supera el 80 %: podés postular.';
+      estado.className = 'mt-2 text-xs font-semibold text-emerald-700';
+      etiqueta.textContent = 'Podés postular';
+      etiqueta.className = 'mini-label text-emerald-600';
+      barra.className = 'h-full rounded-full bg-emerald-600';
+    } else {
+      estado.textContent = 'Necesitás más de 80 % para postular. Te falta: ' + (data.faltantes || []).join(', ') + '.';
+      estado.className = 'mt-2 text-xs font-medium text-amber-700';
+      etiqueta.textContent = 'Falta para postular';
+      etiqueta.className = 'mini-label text-amber-700';
+      barra.className = 'h-full rounded-full bg-amber-500';
+    }
+
+    if (data.mensaje) {
+      toast.textContent = data.mensaje;
+      toast.className = data.nivel === 'error' ? 'toast toast-error' : 'toast toast-info';
+      toast.classList.remove('hidden');
+      setTimeout(function () { toast.classList.add('hidden'); }, 2500);
+    }
+  }
+
+  document.body.addEventListener('perfilActualizado', eventoPerfil);
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="min-h-screen bg-background">
+  {% block banner %}{% endblock %}
+
+  <header class="p-6 sm:px-10 lg:px-14">
+    {% include "partials/brand.html" %}
+  </header>
+
+  <main class="mx-auto w-full max-w-2xl px-6 pb-16 sm:px-10">
+    {% block card %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

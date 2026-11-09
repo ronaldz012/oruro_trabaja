@@ -1,0 +1,57 @@
+<form method="get" action="{% url 'ofertas:publicas' %}" class="space-y-4">
+  <input type="hidden" name="q" value="{{ q }}">
+  {% if guardadas_actual %}
+    <input type="hidden" name="guardadas" value="1">
+  {% endif %}
+
+  <div>
+    <label for="{{ id_prefix }}-profesion" class="mini-label">Profesión</label>
+    <select id="{{ id_prefix }}-profesion" name="profesion" class="input">
+      <option value="">Todas</option>
+      {% for profesion in profesiones %}
+        <option value="{{ profesion.pk }}" {% if profesion_actual == profesion.pk|stringformat:"s" %}selected{% endif %}>{{ profesion.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+    <div>
+      <label for="{{ id_prefix }}-modalidad" class="mini-label">Modalidad</label>
+      <select id="{{ id_prefix }}-modalidad" name="modalidad" class="input">
+        <option value="">Todas</option>
+        {% for modalidad in modalidades %}
+          <option value="{{ modalidad.pk }}" {% if modalidad_actual == modalidad.pk|stringformat:"s" %}selected{% endif %}>{{ modalidad.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="{{ id_prefix }}-tipo" class="mini-label">Contrato</label>
+      <select id="{{ id_prefix }}-tipo" name="tipo_contrato" class="input">
+        <option value="">Todos</option>
+        {% for tipo in tipos_contrato %}
+          <option value="{{ tipo.pk }}" {% if tipo_actual == tipo.pk|stringformat:"s" %}selected{% endif %}>{{ tipo.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <label for="{{ id_prefix }}-departamento" class="mini-label">Departamento</label>
+    <select id="{{ id_prefix }}-departamento" name="departamento" class="input">
+      <option value="">Todos</option>
+      {% for departamento in departamentos %}
+        <option value="{{ departamento.pk }}" {% if departamento_actual == departamento.pk|stringformat:"s" %}selected{% endif %}>{{ departamento.nombre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <label for="{{ id_prefix }}-orden" class="mini-label">Ordenar por</label>
+    <select id="{{ id_prefix }}-orden" name="orden" class="input">
+      <option value="recientes" {% if orden_actual == "recientes" %}selected{% endif %}>Más recientes</option>
+      <option value="cierre" {% if orden_actual == "cierre" %}selected{% endif %}>Cierre próximo</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn-primary">Aplicar</button>
+</form>

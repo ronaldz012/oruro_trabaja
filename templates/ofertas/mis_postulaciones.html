@@ -1,0 +1,63 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Mis postulaciones · Oruro Trabaja{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="page-title">Mis postulaciones</h1>
+      <p class="page-subtitle">Seguí el estado de las ofertas a las que postulaste.</p>
+    </div>
+    <a href="{% url 'ofertas:publicas' %}" class="btn-primary w-auto px-4 py-2 text-sm">Buscar empleos</a>
+  </div>
+
+  {% if page_obj.object_list %}
+    <div class="card mt-6 overflow-hidden p-0">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-160 text-left text-sm">
+          <thead class="border-b border-border bg-secondary-50 text-xs uppercase tracking-wide text-secondary-500">
+            <tr>
+              <th class="px-4 py-2 font-semibold">Oferta</th>
+              <th class="px-4 py-2 font-semibold">Fecha</th>
+              <th class="px-4 py-2 font-semibold">Estado</th>
+              <th class="px-4 py-2"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {% for postulacion in page_obj %}
+              <tr class="hover:bg-secondary-50">
+                <td class="px-4 py-3">
+                  <p class="font-semibold text-secondary-900">{{ postulacion.oferta.titulo }}</p>
+                  <p class="text-xs text-text-muted">{{ postulacion.oferta.empresa.razon_social }}</p>
+                  <p class="mt-1 text-xs text-text-muted">{{ postulacion.oferta.modalidad.nombre }} · {{ postulacion.oferta.departamento.nombre }}</p>
+                </td>
+                <td class="px-4 py-3 text-xs text-text-muted">{{ postulacion.creado_en|date:"d/m/Y H:i" }}</td>
+                <td class="px-4 py-3">
+                  {% include "ofertas/_badge_postulacion.html" with estado=postulacion.estado nombre=postulacion.get_estado_display %}
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <div class="flex flex-wrap items-center justify-end gap-3">
+                    <a href="{% url 'ofertas:detalle' postulacion.oferta.pk %}" class="link text-xs">Ver oferta</a>
+                    {% if postulacion.estado == "POSTULADO" and not postulacion.visto_en %}
+                      <form method="post" action="{% url 'ofertas:postulacion_retirar' postulacion.pk %}" onsubmit="return confirm('¿Retirar esta postulación? No podrás deshacerlo.');">
+                        {% csrf_token %}
+                        <button type="submit" class="text-xs font-semibold text-danger hover:underline">Retirar</button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% include "partials/pagination.html" %}
+  {% else %}
+    <div class="card mt-6 px-6 py-12 text-center">
+      <p class="text-sm font-semibold text-secondary-900">Todavía no postulaste a ninguna oferta.</p>
+      <p class="mt-1 text-sm text-text-muted">Explorá los empleos disponibles y postulate cuando tu perfil esté completo.</p>
+      <a href="{% url 'ofertas:publicas' %}" class="btn-primary mt-5 w-auto px-4 py-2 text-sm">Ver empleos</a>
+    </div>
+  {% endif %}
+{% endblock %}

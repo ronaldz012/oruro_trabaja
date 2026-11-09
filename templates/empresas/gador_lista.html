@@ -1,0 +1,78 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Empresas · Panel GADOR{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="page-title">Empresas</h1>
+      <p class="page-subtitle">Valida, rechaza o suspende empresas registradas en la plataforma.</p>
+    </div>
+    <a href="{% url 'dashboard:gador' %}" class="btn-secondary w-auto px-3 py-2 text-xs">Volver al panel</a>
+  </div>
+
+  <div class="mt-5 flex flex-wrap gap-2">
+    <a href="{% url 'empresas:gador_lista' %}" class="pill {% if not estado_actual %}is-active{% endif %}">
+      Todas · {{ total }}
+    </a>
+    {% for estado in estados %}
+      <a href="?estado={{ estado.codigo }}" class="pill {% if estado_actual == estado.codigo %}is-active{% endif %}">
+        {{ estado.nombre }} · {{ estado.total }}
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if empresas %}
+    <div class="card mt-6 overflow-hidden p-0">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-192 text-left text-sm">
+          <thead class="border-b border-border bg-secondary-50 text-xs uppercase tracking-wide text-secondary-500">
+            <tr>
+              <th class="px-4 py-2 font-semibold">Empresa</th>
+              <th class="px-4 py-2 font-semibold">NIT</th>
+              <th class="px-4 py-2 font-semibold">Rubro</th>
+              <th class="px-4 py-2 font-semibold">Representante</th>
+              <th class="px-4 py-2 font-semibold">Estado</th>
+              <th class="px-4 py-2 font-semibold">Registro</th>
+              <th class="px-4 py-2"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {% for empresa in empresas %}
+              <tr class="hover:bg-secondary-50">
+                <td class="px-4 py-3">
+                  <p class="font-semibold text-secondary-900">{{ empresa.razon_social }}</p>
+                  <p class="text-xs text-text-muted">{{ empresa.user.email }}</p>
+                </td>
+                <td class="px-4 py-3 text-secondary-700">{{ empresa.nit }}</td>
+                <td class="px-4 py-3 text-secondary-700">{{ empresa.rubro.nombre }}</td>
+                <td class="px-4 py-3 text-secondary-700">
+                  {{ empresa.representante_nombres }} {{ empresa.representante_apellidos }}
+                </td>
+                <td class="px-4 py-3">
+                  {% if empresa.estado == 'PENDIENTE_VALIDACION' %}
+                    <span class="chip bg-amber-50 px-2 py-1 text-amber-700">{{ empresa.get_estado_display }}</span>
+                  {% elif empresa.estado == 'APROBADA' %}
+                    <span class="chip bg-emerald-50 px-2 py-1 text-emerald-700">{{ empresa.get_estado_display }}</span>
+                  {% else %}
+                    <span class="chip bg-red-50 px-2 py-1 text-red-700">{{ empresa.get_estado_display }}</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-3 text-xs text-text-muted">{{ empresa.creado_en|date:"d/m/Y" }}</td>
+                <td class="px-4 py-3 text-right">
+                  <a href="{% url 'empresas:gador_detalle' empresa.pk %}" class="link text-xs">Revisar</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    <div class="card mt-6 px-6 py-14 text-center">
+      <p class="text-sm font-semibold text-secondary-900">No hay empresas con ese filtro.</p>
+      <p class="mt-1 text-sm text-text-muted">Cuando una empresa se registre, va a aparecer acá.</p>
+    </div>
+  {% endif %}
+  {% include "partials/pagination.html" %}
+{% endblock %}

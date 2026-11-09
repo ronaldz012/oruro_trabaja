@@ -1,0 +1,22 @@
+{
+  "name": "oruro-trabaja",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "css:dev": "npx @tailwindcss/cli -i ./assets/css/input.css -o ./static/css/app.css --watch",
+    "css:build": "npx @tailwindcss/cli -i ./assets/css/input.css -o ./static/css/app.css --minify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.5",
+    "tailwindcss": "^4.3.5"
+  },
+  "dependencies": {
+    "@material-symbols/font-400": "^0.48.3"
+  }
+}

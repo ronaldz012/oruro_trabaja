@@ -1,0 +1,100 @@
+{% extends "auth.html" %}
+
+{% block title %}Verifica tu celular · Oruro Trabaja{% endblock %}
+
+{% block banner %}
+{% include "partials/demo_banner.html" %}
+{% endblock %}
+
+{% block card %}
+
+<div class="card mx-auto max-w-md p-6">
+  <h1 class="page-title">Verifica tu celular</h1>
+  <p class="mt-2 text-sm text-text-muted">
+    Enviamos un código de 6 dígitos a
+    <span class="font-semibold text-secondary-800">••••{{ celular|slice:"-4:" }}</span>.
+  </p>
+
+  {% if demo_codigo %}
+    <div class="alert-warning mt-5" role="status">
+      <p>
+        <strong>Modo demostración:</strong>
+        su código OTP es
+        <strong class="font-mono text-base tracking-widest">{{ demo_codigo }}</strong>.
+        No se envió ningún SMS.
+      </p>
+    </div>
+  {% endif %}
+
+  {% if codigo_vencido %}
+    <div class="alert-warning mt-5" role="status">
+      El código anterior ya no es válido. Solicita uno nuevo.
+    </div>
+  {% endif %}
+
+  {% if form.non_field_errors %}
+    <div class="alert-error mt-5" role="alert">
+      {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+    </div>
+  {% endif %}
+
+  {% if DEMO_MODE and not demo_codigo and not codigo_vencido and not puede_reenviar %}
+    <div class="alert-warning mt-5" role="status">
+      El código se generó en otra sesión. Si no lo tienes, podrás reenviarlo en
+      {{ segundos_para_reenviar }} s.
+    </div>
+  {% endif %}
+
+  {% include "partials/messages.html" %}
+
+  <form method="post" novalidate class="mt-6 space-y-4">
+    {% csrf_token %}
+    {% include "partials/field.html" with field=form.codigo %}
+    <button type="submit" class="btn-primary">Verificar y continuar</button>
+  </form>
+
+  <form method="post" action="{% url 'postulantes:reenviar_codigo' %}" class="mt-5 text-center">
+    {% csrf_token %}
+    <button type="submit"
+            id="resend-button"
+            {% if limite_alcanzado %}disabled{% endif %}
+            class="link disabled:text-secondary-400">
+      {% if limite_alcanzado %}Límite de envíos alcanzado{% else %}Reenviar código{% endif %}
+    </button>
+  </form>
+
+  {% if limite_alcanzado %}
+    <p class="mt-2 text-center text-xs text-danger">
+      Alcanzaste el límite de códigos por hora. Intenta más tarde.
+    </p>
+  {% endif %}
+
+  <p class="mt-6 text-center text-xs text-text-muted">
+    ¿Número incorrecto?
+    <a href="{% url 'postulantes:cambiar_celular' %}" class="link">Cambiar celular</a>
+  </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if not limite_alcanzado %}
+<script>
+  var button = document.getElementById('resend-button');
+  var segundos = {{ segundos_para_reenviar|default:0 }};
+
+  function tick() {
+    if (segundos > 0) {
+      button.disabled = true;
+      button.textContent = 'Reenviar en ' + segundos + ' s';
+      segundos -= 1;
+      setTimeout(tick, 1000);
+    } else {
+      button.disabled = false;
+      button.textContent = 'Reenviar código';
+    }
+  }
+
+  tick();
+</script>
+{% endif %}
+{% endblock %}

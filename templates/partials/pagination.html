@@ -1,0 +1,20 @@
+{% if page_obj %}
+  <nav class="mt-6 flex flex-wrap items-center justify-between gap-3" aria-label="Paginación">
+    <div class="text-xs text-text-muted">
+      Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+      · {{ page_obj.paginator.count }} resultado{{ page_obj.paginator.count|pluralize:"s" }}
+    </div>
+    <div class="flex items-center gap-2">
+      {% if page_obj.has_previous %}
+        <a href="{% querystring page=page_obj.previous_page_number %}" class="btn-secondary text-xs">Anterior</a>
+      {% else %}
+        <span class="btn-secondary cursor-not-allowed text-xs opacity-40">Anterior</span>
+      {% endif %}
+      {% if page_obj.has_next %}
+        <a href="{% querystring page=page_obj.next_page_number %}" class="btn-secondary text-xs">Siguiente</a>
+      {% else %}
+        <span class="btn-secondary cursor-not-allowed text-xs opacity-40">Siguiente</span>
+      {% endif %}
+    </div>
+  </nav>
+{% endif %}

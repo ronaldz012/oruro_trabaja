@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Iniciar sesión · Oruro Trabaja{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-surface lg:flex">
+
+  <aside class="relative hidden lg:block lg:w-1/2">
+    <img src="{% static 'img/login-oruro-trabaja.webp' %}"
+         alt="Monumento a la Virgen del Socavón, Oruro"
+         class="absolute inset-0 h-full w-full object-cover">
+  </aside>
+
+  <div class="flex min-h-screen flex-col lg:w-1/2">
+    <header class="p-6 sm:p-10">
+      {% include "partials/brand.html" %}
+    </header>
+
+    <main class="flex flex-1 items-center justify-center px-6 pb-12 sm:px-10">
+      <div class="w-full max-w-md">
+
+        <h1 class="text-3xl font-extrabold text-secondary-900">
+          Inicia sesión para continuar
+        </h1>
+        <p class="mt-3 text-sm text-text-muted">
+          Accede a tus ofertas, postulaciones y reportes.
+        </p>
+
+        {% if form.non_field_errors %}
+          <div class="alert-error mt-6" role="alert">
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="post" novalidate class="mt-6 space-y-4">
+          {% csrf_token %}
+          {% if next %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ next }}">
+          {% endif %}
+
+          <div>
+            <label for="{{ form.username.id_for_label }}" class="label">
+              {{ form.username.label }}
+            </label>
+            {{ form.username }}
+            {% for error in form.username.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+          </div>
+
+          <div>
+            <label for="{{ form.password.id_for_label }}" class="label">
+              {{ form.password.label }}
+            </label>
+            <div class="password-field">
+              {{ form.password }}
+              <button type="button" id="toggle-password" aria-label="Mostrar contraseña">
+                <span class="mi" id="icon-show">visibility</span>
+                <span class="mi hidden" id="icon-hide">visibility_off</span>
+              </button>
+            </div>
+            {% for error in form.password.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+          </div>
+
+          <button type="submit" class="btn-primary">Iniciar sesión</button>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-text-muted">
+          ¿No tienes cuenta?
+          <a href="{% url 'postulantes:registro' %}" class="link">Crear cuenta</a>
+        </p>
+
+        <p class="mt-8 text-center text-xs text-text-muted">
+          Al continuar aceptas los términos de uso y la política de privacidad de GADOR.
+        </p>
+
+      </div>
+    </main>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var btn = document.getElementById('toggle-password');
+  var input = document.getElementById('id_password');
+  var iconShow = document.getElementById('icon-show');
+  var iconHide = document.getElementById('icon-hide');
+
+  btn.addEventListener('click', function () {
+    var visible = input.type === 'text';
+    input.type = visible ? 'password' : 'text';
+    btn.setAttribute('aria-label', visible ? 'Mostrar contraseña' : 'Ocultar contraseña');
+    iconShow.classList.toggle('hidden');
+    iconHide.classList.toggle('hidden');
+  });
+</script>
+{% endblock %}

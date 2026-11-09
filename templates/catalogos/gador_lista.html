@@ -1,0 +1,61 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Catálogos · Oruro Trabaja{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="page-title">Catálogos</h1>
+      <p class="page-subtitle">Datos de referencia usados por postulantes, empresas y ofertas.</p>
+    </div>
+    <span class="chip bg-secondary-100 px-3 py-1.5 text-secondary-600">
+      Solo lectura
+    </span>
+  </div>
+
+  <div class="mt-5 flex flex-wrap gap-2">
+    {% for catalogo in catalogos %}
+      <a href="?tipo={{ catalogo.codigo }}" class="pill {% if catalogo.codigo == tipo_actual %}is-active{% endif %}">
+        {{ catalogo.nombre }} · {{ catalogo.total }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <div class="mt-5 flex flex-wrap items-center justify-between gap-2">
+    <p class="text-xs text-text-muted">
+      {{ catalogo_actual.nombre }} · {{ total_registros }} registro{{ total_registros|pluralize:"s" }}
+    </p>
+    <p class="text-xs text-text-muted">Administrado por GADOR</p>
+  </div>
+
+  {% if page_obj.object_list %}
+    <div class="card mt-3 overflow-hidden p-0">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-128 text-left text-sm">
+          <thead class="border-b border-border bg-secondary-50 text-xs uppercase tracking-wide text-secondary-500">
+            <tr>
+              <th class="px-4 py-2 font-semibold">ID</th>
+              <th class="px-4 py-2 font-semibold">Nombre</th>
+              <th class="px-4 py-2 font-semibold">Creado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {% for registro in page_obj %}
+              <tr class="hover:bg-secondary-50">
+                <td class="px-4 py-3 font-mono text-xs text-secondary-500">#{{ registro.pk }}</td>
+                <td class="px-4 py-3 font-semibold text-secondary-900">{{ registro.nombre }}</td>
+                <td class="px-4 py-3 text-xs text-text-muted">{{ registro.creado_en|date:"d/m/Y" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% include "partials/pagination.html" %}
+  {% else %}
+    <div class="card mt-3 px-6 py-12 text-center">
+      <p class="text-sm font-semibold text-secondary-900">No hay registros en {{ catalogo_actual.nombre|lower }}.</p>
+      <p class="mt-1 text-sm text-text-muted">Los datos se cargan mediante seeds o desde el panel de administración.</p>
+    </div>
+  {% endif %}
+{% endblock %}

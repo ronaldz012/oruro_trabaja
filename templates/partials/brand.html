@@ -1,0 +1,9 @@
+{% load static %}
+<a href="{% url 'home' %}" class="inline-flex items-center gap-2" aria-label="Oruro Trabaja, inicio">
+  <img src="{% static 'img/logo-bolsa-trabajo.svg' %}"
+       alt=""
+       class="{% if brand_small %}h-7 w-7{% else %}h-9 w-9{% endif %} rounded-lg">
+  <span class="{% if brand_small %}text-lg{% else %}text-2xl{% endif %} font-extrabold text-secondary-900">
+    Oruro <span class="text-primary-600">Trabaja</span>
+  </span>
+</a>

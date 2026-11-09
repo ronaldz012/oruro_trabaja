@@ -1,0 +1,229 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{% if modo == "crear" %}Nueva oferta{% else %}Editar oferta{% endif %} · Oruro Trabaja{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <a href="{% url 'ofertas:empresa_lista' %}" class="link text-xs">← Volver a mis ofertas</a>
+      <h1 class="page-title mt-2">
+        {% if modo == "crear" %}Nueva oferta{% else %}Editar oferta{% endif %}
+      </h1>
+      <p class="page-subtitle">
+        La oferta queda en borrador. Cuando la envíes, GADOR la revisará antes de publicarla.
+      </p>
+    </div>
+  </div>
+
+  <form method="post" novalidate id="form-oferta" class="mt-6">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert-error mb-5" role="alert">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+      <span id="wizard-ind-1" class="chip bg-secondary-100 px-3 py-1.5 text-secondary-600">1 · Puesto</span>
+      <span class="text-secondary-300">→</span>
+      <span id="wizard-ind-2" class="chip bg-secondary-100 px-3 py-1.5 text-secondary-600">2 · Requisitos</span>
+      <span class="text-secondary-300">→</span>
+      <span id="wizard-ind-3" class="chip bg-secondary-100 px-3 py-1.5 text-secondary-600">3 · Condiciones</span>
+    </div>
+
+    <section id="wizard-step-1" class="card mt-5 space-y-5 p-6">
+      <div>
+        <h2 class="card-title">Puesto</h2>
+        <p class="mt-1 text-xs text-text-muted">Lo primero que va a ver el postulante.</p>
+      </div>
+
+      {% include "partials/field.html" with field=form.titulo %}
+      {% include "partials/field.html" with field=form.descripcion %}
+
+      <div class="grid gap-5 sm:grid-cols-2">
+        {% include "partials/field.html" with field=form.plazas %}
+        {% include "partials/field.html" with field=form.anos_experiencia %}
+      </div>
+
+      {% include "ofertas/_tag_field.html" with field=form.profesiones selected=form.profesiones_seleccionadas suggestions=profesiones_sugeridas field_name="profesiones" label="Profesiones afines (opcional)" help="Se usa para afinidad y búsqueda; no bloquea postulaciones." datalist_id="profesiones-sugeridas" %}
+
+      <div class="flex justify-end">
+        <button type="button" id="wizard-next-1" class="btn-primary w-auto px-4 py-2 text-sm">Siguiente</button>
+      </div>
+    </section>
+
+    <section id="wizard-step-2" class="card mt-5 space-y-5 p-6" hidden>
+      <div>
+        <h2 class="card-title">Requisitos</h2>
+        <p class="mt-1 text-xs text-text-muted">Describí qué necesita la persona y qué suma puntos.</p>
+      </div>
+
+      {% include "partials/field.html" with field=form.requisitos_obligatorios %}
+      {% include "partials/field.html" with field=form.requisitos_deseables %}
+
+      {% include "ofertas/_tag_field.html" with field=form.habilidades_obligatorias selected=form.habilidades_obligatorias_seleccionadas suggestions=habilidades_sugeridas field_name="habilidades_obligatorias" label="Habilidades obligatorias" help="Elegí habilidades de la lista y agregalas como tags." datalist_id="habilidades-obligatorias-sugeridas" %}
+      {% include "ofertas/_tag_field.html" with field=form.habilidades_deseables selected=form.habilidades_deseables_seleccionadas suggestions=habilidades_sugeridas field_name="habilidades_deseables" label="Habilidades deseables" help="Opcional. Suman para el match, pero no son obligatorias." datalist_id="habilidades-deseables-sugeridas" %}
+
+      <div class="flex justify-between">
+        <button type="button" id="wizard-prev-2" class="btn-secondary px-4 py-2 text-sm">Anterior</button>
+        <button type="button" id="wizard-next-2" class="btn-primary w-auto px-4 py-2 text-sm">Siguiente</button>
+      </div>
+    </section>
+
+    <section id="wizard-step-3" class="card mt-5 space-y-5 p-6" hidden>
+      <div>
+        <h2 class="card-title">Condiciones</h2>
+        <p class="mt-1 text-xs text-text-muted">Contrato, ubicación y vigencia de la oferta.</p>
+      </div>
+
+      <div class="grid gap-5 sm:grid-cols-2">
+        {% include "partials/field.html" with field=form.tipo_contrato %}
+        {% include "partials/field.html" with field=form.modalidad %}
+        {% include "partials/field.html" with field=form.departamento %}
+        {% include "partials/field.html" with field=form.municipio %}
+      </div>
+
+      <div class="rounded-xl border border-border bg-secondary-50 p-4">
+        <div class="grid gap-5 sm:grid-cols-2">
+          {% include "partials/field.html" with field=form.salario_min %}
+          {% include "partials/field.html" with field=form.salario_max %}
+        </div>
+        <div class="mt-4">
+          {% include "partials/field.html" with field=form.a_tratar %}
+        </div>
+      </div>
+
+      {% include "partials/field.html" with field=form.beneficios %}
+
+      <div class="grid gap-5 sm:grid-cols-2">
+        {% include "partials/field.html" with field=form.fecha_cierre %}
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
+        <button type="button" id="wizard-prev-3" class="btn-secondary px-4 py-2 text-sm">Anterior</button>
+        <div class="flex flex-wrap gap-3">
+          <a href="{% url 'ofertas:empresa_lista' %}" class="btn-secondary px-4 py-2 text-sm">Cancelar</a>
+          <button type="submit" class="btn-primary w-auto px-4 py-2 text-sm">Guardar borrador</button>
+        </div>
+      </div>
+    </section>
+  </form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var pasoActual = {{ paso_inicial|default:1 }};
+  var wizardSteps = [
+    document.getElementById('wizard-step-1'),
+    document.getElementById('wizard-step-2'),
+    document.getElementById('wizard-step-3')
+  ];
+
+  function mostrarPaso(paso) {
+    for (var i = 0; i < wizardSteps.length; i++) {
+      wizardSteps[i].hidden = (i + 1) !== paso;
+      var indicador = document.getElementById('wizard-ind-' + (i + 1));
+      indicador.className = paso === (i + 1)
+        ? 'chip bg-primary-600 px-3 py-1.5 text-white'
+        : 'chip bg-secondary-100 px-3 py-1.5 text-secondary-600';
+    }
+    pasoActual = paso;
+    window.scrollTo(0, 0);
+  }
+
+  document.getElementById('wizard-next-1').addEventListener('click', function () { mostrarPaso(pasoActual + 1); });
+  document.getElementById('wizard-next-2').addEventListener('click', function () { mostrarPaso(pasoActual + 1); });
+  document.getElementById('wizard-prev-2').addEventListener('click', function () { mostrarPaso(pasoActual - 1); });
+  document.getElementById('wizard-prev-3').addEventListener('click', function () { mostrarPaso(pasoActual - 1); });
+  mostrarPaso(pasoActual);
+
+  function conectarTags(nombreCampo) {
+    var chips = document.getElementById('id_' + nombreCampo + '_tag_chips');
+    var search = document.getElementById('id_' + nombreCampo + '_tag_search');
+    var datalist = document.getElementById(search.getAttribute('list'));
+    var error = document.getElementById('id_' + nombreCampo + '_tag_error');
+    if (!chips || !search || !datalist) return;
+
+    function yaAgregado(id) {
+      var inputs = chips.querySelectorAll('input[value="' + id + '"]');
+      return inputs.length > 0;
+    }
+
+    function agregarTag(id, nombre) {
+      if (yaAgregado(id)) return;
+
+      var chip = document.createElement('span');
+      chip.className = 'tag-chip inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-secondary-800';
+      chip.textContent = nombre;
+
+      var hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.name = nombreCampo;
+      hidden.value = id;
+      chip.appendChild(hidden);
+
+      var quitar = document.createElement('button');
+      quitar.type = 'button';
+      quitar.className = 'tag-remove text-secondary-400 hover:text-danger';
+      quitar.setAttribute('aria-label', 'Quitar ' + nombre);
+      quitar.textContent = '×';
+      chip.appendChild(quitar);
+
+      chips.appendChild(chip);
+    }
+
+    function elegir() {
+      var valor = search.value.trim().toLowerCase();
+      if (!valor) return;
+
+      var opcion = null;
+      for (var i = 0; i < datalist.options.length; i++) {
+        if (datalist.options[i].value.toLowerCase() === valor) {
+          opcion = datalist.options[i];
+          break;
+        }
+      }
+      if (!opcion) {
+        error.textContent = 'Elegí una opción de la lista.';
+        return;
+      }
+
+      agregarTag(opcion.getAttribute('data-id'), opcion.value);
+      search.value = '';
+      error.textContent = '';
+    }
+
+    search.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        elegir();
+      }
+    });
+    search.addEventListener('change', elegir);
+
+    chips.addEventListener('click', function (event) {
+      if (!event.target.classList.contains('tag-remove')) return;
+      event.target.closest('.tag-chip').remove();
+    });
+  }
+
+  conectarTags('profesiones');
+  conectarTags('habilidades_obligatorias');
+  conectarTags('habilidades_deseables');
+
+  var aTratar = document.getElementById('id_a_tratar');
+  var salarioMin = document.getElementById('id_salario_min');
+  var salarioMax = document.getElementById('id_salario_max');
+
+  function actualizarSalario() {
+    salarioMin.disabled = aTratar.checked;
+    salarioMax.disabled = aTratar.checked;
+    salarioMin.classList.toggle('opacity-50', aTratar.checked);
+    salarioMax.classList.toggle('opacity-50', aTratar.checked);
+  }
+
+  aTratar.addEventListener('change', actualizarSalario);
+  actualizarSalario();
+</script>
+{% endblock %}

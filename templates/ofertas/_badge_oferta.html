@@ -1,0 +1,7 @@
+<span class="chip px-3 py-1
+  {% if estado == 'PUBLICADA' or estado == 'EN_PROCESO_SELECCION' %}bg-emerald-50 text-emerald-700
+  {% elif estado == 'EN_REVISION_GADOR' %}bg-amber-50 text-amber-700
+  {% elif estado == 'ANULADA' or estado == 'CERRADA' %}bg-red-50 text-red-700
+  {% else %}bg-secondary-100 text-secondary-600{% endif %}">
+  {{ nombre }}
+</span>

@@ -1,0 +1,30 @@
+# Entorno local
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+db.sqlite3
+
+# Dependencias y caches
+node_modules/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.log
+
+# Archivos subidos y temporales
+media/
+private_media/
+staticfiles/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# QA temporal
+static/qa/

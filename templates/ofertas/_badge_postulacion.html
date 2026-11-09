@@ -1,0 +1,10 @@
+<span class="chip px-2 py-1
+  {% if estado == 'POSTULADO' %}bg-sky-50 text-sky-700
+  {% elif estado == 'VISTO' %}bg-indigo-50 text-indigo-700
+  {% elif estado == 'PRESELECCIONADO' %}bg-amber-50 text-amber-700
+  {% elif estado == 'ENTREVISTA' %}bg-blue-50 text-blue-700
+  {% elif estado == 'FINALISTA' %}bg-violet-50 text-violet-700
+  {% elif estado == 'CONTRATADO' %}bg-emerald-50 text-emerald-700
+  {% else %}bg-red-50 text-red-700{% endif %}">
+  {{ nombre }}
+</span>

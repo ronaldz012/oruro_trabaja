@@ -1,0 +1,66 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Ofertas · Panel GADOR{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="page-title">Ofertas</h1>
+      <p class="page-subtitle">Revisá y publicá las ofertas enviadas por las empresas.</p>
+    </div>
+    <a href="{% url 'dashboard:gador' %}" class="btn-secondary w-auto px-3 py-2 text-xs">Volver al panel</a>
+  </div>
+
+  <div class="mt-5 flex flex-wrap gap-2">
+    <a href="{% url 'ofertas:gador_lista' %}" class="pill {% if not estado_actual %}is-active{% endif %}">
+      Todas · {{ total }}
+    </a>
+    {% for estado in estados %}
+      <a href="?estado={{ estado.codigo }}" class="pill {% if estado_actual == estado.codigo %}is-active{% endif %}">
+        {{ estado.nombre }} · {{ estado.total }}
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.object_list %}
+    <div class="card mt-6 overflow-hidden p-0">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-176 text-left text-sm">
+          <thead class="border-b border-border bg-secondary-50 text-xs uppercase tracking-wide text-secondary-500">
+            <tr>
+              <th class="px-4 py-2 font-semibold">Oferta</th>
+              <th class="px-4 py-2 font-semibold">Empresa</th>
+              <th class="px-4 py-2 font-semibold">Estado</th>
+              <th class="px-4 py-2 font-semibold">Creada</th>
+              <th class="px-4 py-2"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {% for oferta in page_obj %}
+              <tr class="hover:bg-secondary-50">
+                <td class="px-4 py-3">
+                  <p class="font-semibold text-secondary-900">{{ oferta.titulo }}</p>
+                  <p class="text-xs text-text-muted">{{ oferta.modalidad.nombre }} · {{ oferta.departamento.nombre }}</p>
+                </td>
+                <td class="px-4 py-3 text-secondary-700">{{ oferta.empresa.razon_social }}</td>
+                <td class="px-4 py-3">
+                  {% include "ofertas/_badge_oferta.html" with estado=oferta.estado nombre=oferta.get_estado_display %}
+                </td>
+                <td class="px-4 py-3 text-xs text-text-muted">{{ oferta.creado_en|date:"d/m/Y" }}</td>
+                <td class="px-4 py-3 text-right">
+                  <a href="{% url 'ofertas:gador_detalle' oferta.pk %}" class="link text-xs">Revisar</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% include "partials/pagination.html" %}
+  {% else %}
+    <div class="card mt-6 px-6 py-14 text-center">
+      <p class="text-sm font-semibold text-secondary-900">No hay ofertas con ese filtro.</p>
+      <p class="mt-1 text-sm text-text-muted">Cuando una empresa envíe una oferta a revisión, va a aparecer acá.</p>
+    </div>
+  {% endif %}
+{% endblock %}

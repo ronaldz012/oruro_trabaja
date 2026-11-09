@@ -1,0 +1,141 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Postulante · {{ oferta.titulo }}{% endblock %}
+
+{% block content %}
+  {% with postulante=postulacion.postulante %}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <a href="{% url 'ofertas:empresa_detalle' oferta.pk %}" class="link text-xs">← Volver a la oferta</a>
+        <h1 class="page-title mt-2">
+          {% if postulante.user.get_full_name %}{{ postulante.user.get_full_name }}{% else %}{{ postulante.user.email }}{% endif %}
+        </h1>
+        <p class="page-subtitle">Postulación a {{ oferta.titulo }}</p>
+      </div>
+      <div class="space-y-2 sm:text-right">
+        {% include "ofertas/_badge_postulacion.html" with estado=postulacion.estado nombre=postulacion.get_estado_display %}
+        {% if postulacion.visto_en %}
+          <p class="text-xs text-text-muted">Visto el {{ postulacion.visto_en|date:"d/m/Y H:i" }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="mt-6 grid gap-6 lg:grid-cols-3">
+      <div class="space-y-4 lg:col-span-2">
+        <div class="card p-6">
+          <h2 class="section-title">Datos personales</h2>
+          <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+            <div><dt class="mini-label">Correo</dt><dd class="mt-1 break-all text-secondary-800">{{ postulante.user.email }}</dd></div>
+            <div><dt class="mini-label">Celular</dt><dd class="mt-1 text-secondary-800">{{ postulante.user.celular|default:"—" }}</dd></div>
+            <div><dt class="mini-label">CI</dt><dd class="mt-1 text-secondary-800">{{ postulante.ci }}</dd></div>
+            <div><dt class="mini-label">Profesión</dt><dd class="mt-1 text-secondary-800">{{ postulante.profesion.nombre|default:"—" }}</dd></div>
+            <div><dt class="mini-label">Dirección</dt><dd class="mt-1 text-secondary-800">{{ postulante.direccion|default:"—" }}</dd></div>
+            <div><dt class="mini-label">Fecha de nacimiento</dt><dd class="mt-1 text-secondary-800">{{ postulante.fecha_nacimiento|date:"d/m/Y"|default:"—" }}</dd></div>
+            <div><dt class="mini-label">CV</dt><dd class="mt-1 text-secondary-800">{% if postulante.cv %}<a href="{% url 'ofertas:empresa_postulante_cv' oferta.pk postulacion.pk %}" class="link text-xs">Descargar CV</a>{% else %}No cargado{% endif %}</dd></div>
+          </dl>
+        </div>
+
+        {% if postulante.presentacion %}
+          <div class="card p-6">
+            <h2 class="section-title">Presentación</h2>
+            <p class="mt-2 whitespace-pre-line text-sm text-secondary-700">{{ postulante.presentacion }}</p>
+          </div>
+        {% endif %}
+
+        <div class="card p-6">
+          <h2 class="section-title">Formación académica</h2>
+          {% if postulante.formaciones.all %}
+            <ul class="mt-3 space-y-3">
+              {% for formacion in postulante.formaciones.all %}
+                <li class="rounded-xl border border-border bg-secondary-50 p-4">
+                  <p class="text-sm font-semibold text-secondary-900">{{ formacion.titulo }}</p>
+                  <p class="mt-1 text-xs text-text-muted">{{ formacion.institucion }} · {{ formacion.anio_titulacion }}</p>
+                  {% if formacion.nro_titulo %}<p class="mt-1 text-xs text-text-muted">Título Nro. {{ formacion.nro_titulo }}</p>{% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="mt-2 text-sm text-text-muted">Sin formación registrada.</p>
+          {% endif %}
+        </div>
+
+        <div class="card p-6">
+          <h2 class="section-title">Experiencia laboral</h2>
+          {% if postulante.experiencias.all %}
+            <ul class="mt-3 space-y-3">
+              {% for experiencia in postulante.experiencias.all %}
+                <li class="rounded-xl border border-border bg-secondary-50 p-4">
+                  <p class="text-sm font-semibold text-secondary-900">{{ experiencia.cargo }}</p>
+                  <p class="mt-1 text-xs text-text-muted">{{ experiencia.empresa }} · {{ experiencia.anos }} año{{ experiencia.anos|pluralize:"s" }}</p>
+                  {% if experiencia.descripcion %}<p class="mt-2 whitespace-pre-line text-xs text-secondary-700">{{ experiencia.descripcion }}</p>{% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="mt-2 text-sm text-text-muted">Sin experiencia registrada.</p>
+          {% endif %}
+        </div>
+
+        <div class="card p-6">
+          <h2 class="section-title">Habilidades e idiomas</h2>
+          <div class="mt-4 grid gap-5 sm:grid-cols-2">
+            <div>
+              <p class="mini-label">Habilidades</p>
+              <div class="mt-2 flex flex-wrap gap-2">
+                {% for item in postulante.habilidades.all %}
+                  <span class="chip bg-primary-50 px-2 py-1 font-medium text-primary-700">{{ item.habilidad.nombre }} · {{ item.get_nivel_display }}</span>
+                {% empty %}
+                  <span class="text-sm text-text-muted">Sin habilidades registradas.</span>
+                {% endfor %}
+              </div>
+            </div>
+            <div>
+              <p class="mini-label">Idiomas</p>
+              <div class="mt-2 flex flex-wrap gap-2">
+                {% for item in postulante.idiomas.all %}
+                  <span class="chip bg-secondary-100 px-2 py-1 font-medium text-secondary-700">{{ item.idioma.nombre }} · {{ item.get_nivel_display }}</span>
+                {% empty %}
+                  <span class="text-sm text-text-muted">Sin idiomas registrados.</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="card p-5">
+          <h2 class="card-title">Estado de la postulación</h2>
+          <p class="mt-1 text-xs text-text-muted">Los cambios avanzan el proceso del candidato. No se puede retroceder.</p>
+
+          {% if opciones_estado %}
+            <form method="post" action="{% url 'ofertas:empresa_postulante_estado' oferta.pk postulacion.pk %}" class="mt-4 space-y-4">
+              {% csrf_token %}
+              <label for="nuevo-estado" class="mini-label">Nuevo estado</label>
+              <select id="nuevo-estado" name="estado" class="input" required>
+                <option value="">Elegí un estado</option>
+                {% for opcion in opciones_estado %}
+                  <option value="{{ opcion.codigo }}">{{ opcion.nombre }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn-primary w-full text-sm">Actualizar estado</button>
+            </form>
+          {% else %}
+            <p class="mt-3 rounded-xl border border-border bg-secondary-50 px-4 py-3 text-sm text-text-muted">
+              Esta postulación está en un estado final.
+            </p>
+          {% endif %}
+        </div>
+
+        <div class="card p-5">
+          <h2 class="card-title">Resumen</h2>
+          <dl class="mt-3 space-y-2 text-sm">
+            <div><dt class="text-xs text-text-muted">Fecha de postulación</dt><dd class="font-semibold text-secondary-800">{{ postulacion.creado_en|date:"d/m/Y H:i" }}</dd></div>
+            <div><dt class="text-xs text-text-muted">Última actualización</dt><dd class="font-semibold text-secondary-800">{{ postulacion.actualizado_en|date:"d/m/Y H:i" }}</dd></div>
+            <div><dt class="text-xs text-text-muted">Oferta</dt><dd class="font-semibold text-secondary-800">{{ oferta.titulo }}</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  {% endwith %}
+{% endblock %}

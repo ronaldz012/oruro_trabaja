@@ -1,0 +1,61 @@
+{% with actual=request.resolver_match.url_name namespace=request.resolver_match.namespace %}
+<aside id="sidebar"
+       aria-label="Navegación GADOR"
+       class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-border bg-surface transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0">
+
+  <div class="flex items-center justify-between border-b border-border px-4 py-4 lg:hidden">
+    <span class="text-sm font-bold text-secondary-900">Menú</span>
+    <button type="button" data-sidebar-close aria-label="Cerrar menú"
+            class="grid h-9 w-9 place-items-center rounded-lg text-secondary-500 hover:bg-secondary-50">
+      <span class="mi">close</span>
+    </button>
+  </div>
+
+  <div class="hidden px-4 py-5 lg:block">
+    <p class="mini-label font-bold">Panel GADOR</p>
+    <p class="mt-1 truncate text-sm font-semibold text-secondary-900">{{ user.email }}</p>
+  </div>
+
+  <nav class="flex-1 space-y-1 px-3 py-3">
+    <a href="{% url 'dashboard:gador' %}"
+       class="nav-link {% if actual == 'gador' %}is-active{% endif %}"
+       {% if actual == 'gador' %}aria-current="page"{% endif %}>
+      <span class="mi">home</span>
+      Dashboard
+    </a>
+
+    <a href="{% url 'empresas:gador_lista' %}"
+       class="nav-link {% if namespace == 'empresas' %}is-active{% endif %}"
+       {% if namespace == 'empresas' %}aria-current="page"{% endif %}>
+      <span class="mi">apartment</span>
+      Empresas
+    </a>
+
+    <a href="{% url 'ofertas:gador_lista' %}"
+       class="nav-link {% if namespace == 'ofertas' %}is-active{% endif %}"
+       {% if namespace == 'ofertas' %}aria-current="page"{% endif %}>
+      <span class="mi">work</span>
+      Ofertas
+    </a>
+
+    <a href="{% url 'catalogos:gador_lista' %}"
+       class="nav-link {% if namespace == 'catalogos' %}is-active{% endif %}"
+       {% if namespace == 'catalogos' %}aria-current="page"{% endif %}>
+      <span class="mi">menu_book</span>
+      Catálogos
+    </a>
+
+    <a href="{% url 'dashboard:reportes' %}"
+       class="nav-link {% if actual == 'reportes' %}is-active{% endif %}"
+       {% if actual == 'reportes' %}aria-current="page"{% endif %}>
+      <span class="mi">bar_chart</span>
+      Reportes
+    </a>
+  </nav>
+
+  <div class="border-t border-border px-4 py-4">
+    <p class="mini-label">Oruro Trabaja</p>
+    <p class="mt-1 text-xs text-text-muted">GADOR · Oruro</p>
+  </div>
+</aside>
+{% endwith %}
