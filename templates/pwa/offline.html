@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sin conexión · Oruro Trabaja{% endblock %}
+
+{% block body %}
+<main class="mx-auto flex min-h-screen w-full max-w-md flex-col items-center justify-center px-6 text-center bg-background">
+  <img src="{% static 'img/logo-bolsa-trabajo.svg' %}" alt="" class="h-16 w-16 rounded-lg">
+  <h1 class="page-title mt-6">Sin conexión</h1>
+  <p class="page-subtitle">
+    No pudimos cargar la página. Revisá tu conexión a internet e intentá nuevamente.
+  </p>
+  <button type="button" onclick="location.reload()" class="btn-primary mt-6 w-auto px-4 py-2 text-sm">
+    Reintentar
+  </button>
+</main>
+{% endblock %}

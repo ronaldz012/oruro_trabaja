@@ -8,13 +8,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
-  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/favicon-32.png' %}">
-  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/apple-touch-icon.png' %}">
-  <meta name="theme-color" content="#7A1014">
+  {% include "partials/pwa_head.html" %}
 </head>
 <body class="font-sans text-text antialiased">
   {% block body %}{% endblock %}
 
   {% block scripts %}{% endblock %}
+  {% include "partials/pwa_scripts.html" %}
 </body>
 </html>
