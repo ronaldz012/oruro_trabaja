@@ -96,6 +96,24 @@ DATABASES = {
     }
 }
 
+# Postgres: si POSTGRES_DB está definido, la base de datos es PostgreSQL.
+POSTGRES_DB = env("POSTGRES_DB", default="")
+if POSTGRES_DB:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": POSTGRES_DB,
+            "USER": env("POSTGRES_USER", default="postgres"),
+            "PASSWORD": env("POSTGRES_PASSWORD", default=""),
+            "HOST": env("POSTGRES_HOST", default="localhost"),
+            "PORT": env.int("POSTGRES_PORT", default=5432),
+            "OPTIONS": {
+                "sslmode": env("POSTGRES_SSLMODE", default="prefer"),
+            },
+            "CONN_MAX_AGE": env.int("DB_CONN_MAX_AGE", default=60),
+        }
+    }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
