@@ -5,6 +5,8 @@ from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.platform.accounts.models import Role, User
+from apps.platform.audit import service as audit
+from apps.platform.audit.models import AuditLog
 from apps.recruitment.postulantes.models import PostulanteProfile
 
 CV_EJEMPLO = Path(settings.BASE_DIR) / "assets" / "seed" / "cv-ejemplo.pdf"
@@ -68,6 +70,13 @@ class Command(BaseCommand):
                     is_superuser=is_admin,
                     celular_verificado=True,
                 ) # type: ignore
+                audit.registrar(
+                    None,
+                    AuditLog.Accion.CREAR,
+                    user,
+                    despues={"rol": role_code},
+                    usuario=user,
+                )
                 self.stdout.write(
                     self.style.SUCCESS(
                         f"Usuario {email} creado con rol {role_code}."

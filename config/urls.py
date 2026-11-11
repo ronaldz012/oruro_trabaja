@@ -12,6 +12,7 @@ urlpatterns = [
     path("sw.js", pwa_views.service_worker, name="pwa_service_worker"),
     path("offline/", pwa_views.offline, name="pwa_offline"),
     path("", include("apps.platform.accounts.urls")),
+    path("", include("apps.platform.audit.urls")),
     path("", include("apps.recruitment.empresas.urls")),
     path("", include("apps.recruitment.catalogos.urls")),
     path("", include("apps.recruitment.ofertas.urls")),

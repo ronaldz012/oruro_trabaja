@@ -51,6 +51,12 @@
       <span class="mi">bar_chart</span>
       Reportes
     </a>
+
+    <a href="{% url 'audit:lista' %}"
+       class="nav-link {% if namespace == 'audit' %}is-active{% endif %}">
+      <span class="mi">history</span>
+      Auditoría
+    </a>
   </nav>
 
   <div class="border-t border-border px-4 py-4">

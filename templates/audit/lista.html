@@ -1,0 +1,63 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Auditoría · Panel GADOR{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="page-title">Auditoría</h1>
+      <p class="page-subtitle">Registro de acciones relevantes: empresas validadas y ofertas revisadas.</p>
+    </div>
+    <a href="{% url 'dashboard:gador' %}" class="btn-secondary w-auto px-3 py-2 text-xs">Volver al panel</a>
+  </div>
+
+  {% if registros %}
+    <div class="card mt-5 overflow-hidden p-0">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-192 text-left text-sm">
+          <thead class="border-b border-border bg-secondary-50 text-xs uppercase tracking-wide text-secondary-500">
+            <tr>
+              <th class="px-4 py-2 font-semibold">Fecha</th>
+              <th class="px-4 py-2 font-semibold">Usuario</th>
+              <th class="px-4 py-2 font-semibold">Acción</th>
+              <th class="px-4 py-2 font-semibold">Tabla</th>
+              <th class="px-4 py-2 font-semibold">Registro</th>
+              <th class="px-4 py-2"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {% for registro in registros %}
+              <tr class="hover:bg-secondary-50">
+                <td class="px-4 py-3 text-xs text-text-muted">{{ registro.fecha|date:"d/m/Y H:i" }}</td>
+                <td class="px-4 py-3 text-secondary-700">{{ registro.usuario.email|default:"—" }}</td>
+                <td class="px-4 py-3">
+                  {% if registro.accion == 'CAMBIO_ESTADO' %}
+                    <span class="chip bg-amber-50 px-2 py-1 text-amber-700">{{ registro.get_accion_display }}</span>
+                  {% elif registro.accion == 'LOGIN' %}
+                    <span class="chip bg-emerald-50 px-2 py-1 text-emerald-700">{{ registro.get_accion_display }}</span>
+                  {% elif registro.accion == 'CREAR' %}
+                    <span class="chip bg-sky-50 px-2 py-1 text-sky-700">{{ registro.get_accion_display }}</span>
+                  {% else %}
+                    <span class="chip bg-secondary-100 px-2 py-1 text-secondary-600">{{ registro.get_accion_display }}</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-3 text-secondary-700">{{ registro.tabla|default:"—" }}</td>
+                <td class="px-4 py-3 text-secondary-700">{{ registro.registro_id|default:"—" }}</td>
+                <td class="px-4 py-3 text-right">
+                  <a href="{% url 'audit:detalle' registro.pk %}" class="link text-xs">Ver detalle</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {% include "partials/pagination.html" with page_obj=registros only %}
+  {% else %}
+    <div class="card mt-5 p-8 text-center">
+      <span class="mi mx-auto text-3xl text-secondary-300">history</span>
+      <p class="mt-2 text-sm text-text-muted">Todavía no hay acciones registradas.</p>
+    </div>
+  {% endif %}
+{% endblock %}

@@ -12,6 +12,8 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from apps.platform.accounts.models import Role
+from apps.platform.audit import service as audit
+from apps.platform.audit.models import AuditLog
 from apps.recruitment.catalogos.models import (Departamento, Habilidad,Modalidad,Profesion,TipoContrato)
 from apps.recruitment.ofertas.forms import OfertaForm
 from apps.recruitment.ofertas.models import Oferta, OfertaGuardada, Postulacion
@@ -283,6 +285,7 @@ def gador_accion(request, pk):
     oferta = get_object_or_404(Oferta, pk=pk)
     accion = request.POST.get("accion", "")
     motivo = request.POST.get("motivo", "")
+    estado_antes = oferta.estado
 
     if accion == "aprobar":
         try:
@@ -290,6 +293,13 @@ def gador_accion(request, pk):
         except ValueError as exc:
             messages.error(request, str(exc))
         else:
+            audit.registrar(
+                request,
+                AuditLog.Accion.CAMBIO_ESTADO,
+                oferta,
+                antes={"estado": estado_antes},
+                despues={"estado": oferta.estado},
+            )
             messages.success(request, "Oferta publicada.")
     elif accion == "devolver":
         try:
@@ -297,6 +307,13 @@ def gador_accion(request, pk):
         except ValueError as exc:
             messages.error(request, str(exc))
         else:
+            audit.registrar(
+                request,
+                AuditLog.Accion.CAMBIO_ESTADO,
+                oferta,
+                antes={"estado": estado_antes, "motivo": ""},
+                despues={"estado": oferta.estado, "motivo": oferta.motivo_revision},
+            )
             messages.success(request, "Oferta devuelta a borrador.")
     else:
         messages.error(request, "Acción inválida.")

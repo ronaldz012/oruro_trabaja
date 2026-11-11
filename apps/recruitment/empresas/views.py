@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from apps.platform.accounts.models import Role
+from apps.platform.audit import service as audit
+from apps.platform.audit.models import AuditLog
 from apps.recruitment.empresas.forms import RegistroEmpresaForm
 from apps.recruitment.empresas.models import Empresa
 from apps.recruitment.empresas.usecases.gestionar_empresa import CambiarEstadoEmpresa
@@ -55,6 +57,12 @@ def registro(request):
                     "Verifica los datos e intenta nuevamente.",
                 )
             else:
+                audit.registrar(
+                    request,
+                    AuditLog.Accion.CREAR,
+                    _empresa,
+                    despues={"estado": _empresa.estado},
+                )
                 auth_login(
                     request,
                     user,
@@ -133,6 +141,7 @@ def gador_accion(request, pk):
     empresa = get_object_or_404(Empresa, pk=pk)
     accion = request.POST.get("accion", "")
     motivo = request.POST.get("motivo", "")
+    estado_antes = [empresa.estado, empresa.motivo_rechazo]
 
     try:
         CambiarEstadoEmpresa().execute(
@@ -144,6 +153,13 @@ def gador_accion(request, pk):
     except DomainError as exc:
         messages.error(request, exc.message)
     else:
+        audit.registrar(
+            request,
+            AuditLog.Accion.CAMBIO_ESTADO,
+            empresa,
+            antes={"estado": estado_antes[0], "motivo": estado_antes[1]},
+            despues={"estado": empresa.estado, "motivo": empresa.motivo_rechazo},
+        )
         messages.success(
             request,
             f"Empresa actualizada a: {empresa.get_estado_display()}.",

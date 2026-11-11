@@ -3,6 +3,9 @@ from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from apps.platform.accounts.models import Role, User
+from apps.platform.audit import service as audit
+from apps.platform.audit.models import AuditLog
 from apps.recruitment.catalogos.models import (
     Departamento,
     Habilidad,
@@ -23,6 +26,8 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR("No hay empresa aprobada. Corre seed_empresas."))
             return
 
+        admin = User.objects.filter(role__codigo=Role.Code.SUPERADMIN).first()
+
         tipo = TipoContrato.objects.get_or_create(nombre="Indefinido")[0]
         modalidad = Modalidad.objects.get_or_create(nombre="Híbrido")[0]
         departamento = Departamento.objects.get_or_create(nombre="Oruro")[0]
@@ -32,7 +37,7 @@ class Command(BaseCommand):
             for nombre in ("Python", "SQL", "Django", "Análisis de datos")
         ]
 
-        publicada, _ = Oferta.objects.update_or_create(
+        publicada, creada_publicada = Oferta.objects.update_or_create(
             empresa=empresa,
             titulo="Desarrollador Full Stack",
             defaults={
@@ -57,7 +62,7 @@ class Command(BaseCommand):
         publicada.profesiones.set([profesion])
         self._habilidades(publicada, habilidades[:3], habilidades[3:])
 
-        revision, _ = Oferta.objects.update_or_create(
+        revision, creada_revision = Oferta.objects.update_or_create(
             empresa=empresa,
             titulo="Analista de Datos",
             defaults={
@@ -80,7 +85,7 @@ class Command(BaseCommand):
         revision.profesiones.set([profesion])
         self._habilidades(revision, habilidades[1:3], habilidades[3:])
 
-        borrador, _ = Oferta.objects.update_or_create(
+        borrador, creada_borrador = Oferta.objects.update_or_create(
             empresa=empresa,
             titulo="Pasante de Soporte Técnico",
             defaults={
@@ -104,6 +109,39 @@ class Command(BaseCommand):
         self._habilidades(borrador, [], habilidades[3:])
 
         self.stdout.write(self.style.SUCCESS("Ofertas seed creadas: 1 publicada, 1 en revisión, 1 borrador."))
+
+        if creada_publicada:
+            audit.registrar(
+                None,
+                AuditLog.Accion.CREAR,
+                publicada,
+                despues={"estado": Oferta.Estado.EN_REVISION_GADOR},
+                usuario=empresa.user,
+            )
+            audit.registrar(
+                None,
+                AuditLog.Accion.CAMBIO_ESTADO,
+                publicada,
+                antes={"estado": Oferta.Estado.EN_REVISION_GADOR, "motivo": ""},
+                despues={"estado": Oferta.Estado.PUBLICADA, "motivo": ""},
+                usuario=admin,
+            )
+        if creada_revision:
+            audit.registrar(
+                None,
+                AuditLog.Accion.CREAR,
+                revision,
+                despues={"estado": Oferta.Estado.EN_REVISION_GADOR},
+                usuario=empresa.user,
+            )
+        if creada_borrador:
+            audit.registrar(
+                None,
+                AuditLog.Accion.CREAR,
+                borrador,
+                despues={"estado": Oferta.Estado.BORRADOR},
+                usuario=empresa.user,
+            )
 
     def _habilidades(self, oferta, obligatorias, deseables):
         oferta.requerimientos_habilidad.all().delete()

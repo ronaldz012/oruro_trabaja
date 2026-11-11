@@ -3,6 +3,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from apps.platform.accounts.models import Role, User
+from apps.platform.audit import service as audit
+from apps.platform.audit.models import AuditLog
 from apps.recruitment.catalogos.models import Rubro
 from apps.recruitment.empresas.models import Empresa
 
@@ -33,7 +35,7 @@ class Command(BaseCommand):
             apellidos="Aprobada",
             celular="+59170000010",
         )
-        Empresa.objects.update_or_create(
+        empresa_aprobada, creada_aprobada = Empresa.objects.update_or_create(
             user=aprobada,
             defaults={
                 "nit": "1000001",
@@ -50,6 +52,22 @@ class Command(BaseCommand):
                 "revisada_en": timezone.now(),
             },
         )
+        if creada_aprobada:
+            audit.registrar(
+                None,
+                AuditLog.Accion.CREAR,
+                empresa_aprobada,
+                despues={"estado": Empresa.Estado.PENDIENTE},
+                usuario=aprobada,
+            )
+            audit.registrar(
+                None,
+                AuditLog.Accion.CAMBIO_ESTADO,
+                empresa_aprobada,
+                antes={"estado": Empresa.Estado.PENDIENTE, "motivo": ""},
+                despues={"estado": Empresa.Estado.APROBADA, "motivo": ""},
+                usuario=admin,
+            )
 
         pendiente = self._usuario(
             role=role,
@@ -59,7 +77,7 @@ class Command(BaseCommand):
             apellidos="Pendiente",
             celular="+59170000011",
         )
-        Empresa.objects.update_or_create(
+        empresa_pendiente, creada_pendiente = Empresa.objects.update_or_create(
             user=pendiente,
             defaults={
                 "nit": "1000002",
@@ -76,6 +94,14 @@ class Command(BaseCommand):
                 "revisada_en": None,
             },
         )
+        if creada_pendiente:
+            audit.registrar(
+                None,
+                AuditLog.Accion.CREAR,
+                empresa_pendiente,
+                despues={"estado": Empresa.Estado.PENDIENTE},
+                usuario=pendiente,
+            )
 
         self.stdout.write(
             self.style.SUCCESS(

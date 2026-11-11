@@ -1,0 +1,58 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Auditoría · {{ registro.accion }}{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="page-title">Detalle del registro</h1>
+      <p class="page-subtitle">
+        {{ registro.accion }} · {{ registro.tabla|default:"—" }} ·
+        registro {{ registro.registro_id|default:"—" }}
+      </p>
+    </div>
+    <a href="{% url 'audit:lista' %}" class="btn-secondary w-auto px-3 py-2 text-xs">Volver a la auditoría</a>
+  </div>
+
+  <div class="mt-5 grid gap-4 sm:grid-cols-2">
+    <section class="card p-5">
+      <h2 class="card-title">Datos</h2>
+      <dl class="mt-3 space-y-2 text-sm">
+        <div class="flex justify-between gap-3">
+          <dt class="text-text-muted">Fecha</dt>
+          <dd class="font-semibold text-secondary-900">{{ registro.fecha|date:"d/m/Y H:i:s" }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-text-muted">Usuario</dt>
+          <dd class="font-semibold text-secondary-900">{{ registro.usuario.email|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-text-muted">IP</dt>
+          <dd class="font-semibold text-secondary-900">{{ registro.ip|default:"—" }}</dd>
+        </div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-text-muted">Acción</dt>
+          <dd class="font-semibold text-secondary-900">{{ registro.get_accion_display }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="card p-5">
+      <h2 class="card-title">Estado antes</h2>
+      {% if registro.datos_antes %}
+        <pre class="mt-3 overflow-x-auto rounded-lg bg-secondary-950 p-3 text-xs text-secondary-100">{{ registro.datos_antes|default_if_none:"—" }}</pre>
+      {% else %}
+        <p class="mt-3 text-sm text-text-muted">Sin datos registrados.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="card mt-4 p-5">
+    <h2 class="card-title">Estado después</h2>
+    {% if registro.datos_despues %}
+      <pre class="mt-3 overflow-x-auto rounded-lg bg-secondary-950 p-3 text-xs text-secondary-100">{{ registro.datos_despues }}</pre>
+    {% else %}
+      <p class="mt-3 text-sm text-text-muted">Sin datos registrados.</p>
+    {% endif %}
+  </section>
+{% endblock %}
