@@ -1,0 +1,83 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Mi cuenta · Oruro Trabaja{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="page-title">Mi cuenta</h1>
+      <p class="page-subtitle">Datos de tu cuenta y credenciales.</p>
+    </div>
+    <a href="{% url 'home' %}" class="btn-secondary w-auto px-3 py-2 text-xs">Volver al panel</a>
+  </div>
+
+  <div class="alert-info mt-4" role="note">
+    En esta versión demo la edición de credenciales está deshabilitada.
+  </div>
+
+  <section class="card mt-4 p-5">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h2 class="card-title">Datos de la cuenta</h2>
+    </div>
+    <dl class="mt-4 grid gap-4 sm:grid-cols-2">
+      <div>
+        <dt class="label">Nombre</dt>
+        <dd>
+          <input type="text" value="{{ user.first_name }} {{ user.last_name }}" disabled class="input opacity-60">
+        </dd>
+      </div>
+      <div>
+        <dt class="label">Correo electrónico</dt>
+        <dd>
+          <input type="text" value="{{ user.email }}" disabled class="input opacity-60">
+        </dd>
+      </div>
+      <div>
+        <dt class="label">Celular</dt>
+        <dd>
+          <input type="text" value="{{ user.celular|default:'—' }}" disabled class="input opacity-60">
+        </dd>
+      </div>
+      <div>
+        <dt class="label">Rol</dt>
+        <dd>
+          <input type="text" value="{{ user.role.nombre }}" disabled class="input opacity-60">
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  <div class="mt-4 grid gap-4 lg:grid-cols-2">
+    <section class="card p-5">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="card-title">Cambiar contraseña</h2>
+        <span class="chip chip-neutra px-2 py-1">No disponible en demo</span>
+      </div>
+      <p class="mt-1 text-xs text-text-muted">Pedirá tu contraseña actual y la nueva dos veces.</p>
+      <div class="mt-4 space-y-4">
+        <div>
+          <label class="label" for="contrasena-actual">Contraseña actual</label>
+          <input type="password" id="contrasena-actual" disabled class="input opacity-60" placeholder="••••••••">
+        </div>
+        <div>
+          <label class="label" for="contrasena-nueva">Nueva contraseña</label>
+          <input type="password" id="contrasena-nueva" disabled class="input opacity-60" placeholder="••••••••">
+        </div>
+      </div>
+      <button type="button" disabled class="btn-primary mt-4 w-auto opacity-40 cursor-not-allowed">Guardar</button>
+    </section>
+
+    <section class="card p-5">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="card-title">Recuperar contraseña</h2>
+        <span class="chip chip-neutra px-2 py-1">No disponible en demo</span>
+      </div>
+      <p class="mt-1 text-xs text-text-muted">Enviará un enlace de recuperación a tu correo.</p>
+      <div class="mt-4">
+        <label class="label" for="correo-recuperacion">Correo electrónico</label>
+        <input type="email" id="correo-recuperacion" disabled class="input opacity-60" placeholder="tu@correo.com">
+      </div>
+      <button type="button" disabled class="btn-primary mt-4 w-auto opacity-40 cursor-not-allowed">Enviar enlace</button>
+    </section>
+  </div>
+{% endblock %}

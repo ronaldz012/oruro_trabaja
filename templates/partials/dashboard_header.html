@@ -43,6 +43,9 @@
           <p class="text-xs text-text-muted{% if not user.first_name and not user.last_name %} font-bold text-secondary-800{% endif %}">{{ user.email }}</p>
         </div>
         <div class="border-t border-border py-2">
+          <a href="{% url 'accounts:mi_cuenta' %}" class="block px-4 py-2 text-left text-sm font-semibold text-secondary-700 hover:bg-secondary-50">
+            Mi cuenta
+          </a>
           <form method="post" action="{% url 'accounts:logout' %}">
             {% csrf_token %}
             <button type="submit" class="block w-full px-4 py-2 text-left text-sm font-semibold text-secondary-700 hover:bg-secondary-50">

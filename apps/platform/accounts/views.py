@@ -1,6 +1,7 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.exceptions import NON_FIELD_ERRORS
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 
 from .forms import EmailAuthenticationForm
 from .redirects import dashboard_url_for
@@ -45,3 +46,8 @@ def home(request):
     if not request.user.is_authenticated:
         return redirect("accounts:login")
     return redirect(dashboard_url_for(request.user))
+
+
+@login_required
+def mi_cuenta(request):
+    return render(request, "accounts/mi_cuenta.html")
