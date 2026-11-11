@@ -1,43 +1,93 @@
 # Oruro Trabaja
 
-Bolsa de trabajo digital de la Gobernación de Oruro.
+Bolsa de trabajo digital de la Gobernación Autónoma Departamental de Oruro.
+Los postulantes registran su perfil y hoja de vida, las empresas publican
+ofertas y GADOR valida, publica y audita todo el proceso.
 
-## Stack
+## Entregables
 
-- Django 6.1
-- SQLite en desarrollo (soporte PostgreSQL previsto en un próximo release)
-- Tailwind CSS 4
-- HTMX
-- Storage local o S3 compatible con Cloudflare R2
+| Entregable | Enlace |
+|---|---|
+| Demo en vivo | https://demo-gador.ronaldzepita.com |
+| Video de demostración (2 min) | https://youtu.be/sa92ydyRYA8 |
+| Manual de usuario | docs/Manual_de_usuario_%20Oruro%20Trabaja.pdf |
+| Manual técnico | docs/Manual%20técnico_%20Oruro_Trabaja.pdf |
+| Diccionario de datos (PDF) | docs/Diccionario_de%20datos_%20Oruro%20Trabaja.pdf |
+| Diccionario de datos (fuente) | docs/diccionario_datos.md |
+| Dump de la base de datos | docs/oruro_trabaja.sql |
+| Arquitectura | docs/ARQUITECTURA.md |
+
+Las credenciales de la demo se envían en el correo de presentación y no se
+versionan en este repositorio. Los evaluadores también pueden registrarse con
+su propio celular.
+
+## Objetivo del sistema
+
+El registro de empresas y la publicación de ofertas laborales de la Gobernación
+de Oruro dependen hoy de formularios en papel y revisiones manuales. Eso hace
+lento el proceso, deja la información dispersa y no deja ningún registro
+verificable de quién autorizó qué.
+
+Oruro Trabaja digitaliza el ciclo completo. Una empresa se registra y queda
+pendiente de validación; una vez validada por GADOR crea sus ofertas, que
+también pasan por revisión institucional antes de ser públicas. El postulante
+arma su perfil con CV obligatorio, postula y sigue el estado de cada proceso.
+La empresa revisa las postulaciones y las mueve hasta el contrato.
+
+Cada acción relevante (validaciones, publicaciones, cambios de estado) queda
+registrada en una auditoría con los datos anteriores y posteriores, visible
+desde el panel de GADOR.
+
+## Decisiones de diseño
+
+- **Django como monolito modular.** Proyecto de una persona con plazo corto:
+  un solo deploy y un solo runtime. La modularidad está en la disciplina, apps
+  por dominio con dependencias en una sola dirección y un kernel compartido
+  (core/), de modo que si el sistema crece se puede dividir en servicios sin
+  reescribirlo.
+- **Server rendered con HTMX, sin SPA.** La interactividad real del producto
+  son cuatro o cinco puntos: perfil que se guarda en vivo, tags de habilidades,
+  wizard de ofertas y notificaciones. HTMX los resuelve sin build de frontend
+  ni doble estado: menos código y menos superficie de bugs.
+- **Tailwind.** Sistema de diseño rápido y consistente, sin CSS custom grande.
+- **SQLite en desarrollo, PostgreSQL en producción, por configuración.** El
+  juez levanta el sistema local sin instalar nada de base de datos; el server
+  corre el mismo esquema en Postgres. La selección vive en el .env.
+- **Cloudflare R2 para archivos.** Compatible S3 y sin costo de salida. Las
+  fotos de perfil y logos son públicas; los CV nunca se exponen: se descargan
+  solo por URL firmada con expiración.
+- **Verificación por OTP con modo demo.** El celular verifica identidad mejor
+  que el correo y no exige infraestructura de email. DEMO_MODE muestra el
+  código en pantalla para que el flujo sea evaluable sin SMS real.
+- **Perfil con completitud y CV obligatorio (más de 80 por ciento).** Protege
+  a las empresas de postulaciones sin contenido. Cada sección muestra un check
+  o un aviso con lo que falta, para que el usuario no se pierda en el proceso.
+- **Auditoría desde el día uno.** Registro JSON antes y después en cada acción
+  que importa, consultable en el panel de GADOR.
+- **PWA.** Instalable en el celular, con service worker y página offline,
+  pensada para usuarios con conexiones intermitentes.
+- **Seeds idempotentes.** La demo es repetible y restaurable con comandos, sin
+  datos de prueba quemados en el código.
 
 ## Estructura
 
 ```text
-core/                       # kernel transversal
-apps/
-  platform/
-    accounts/               # User, Role, OTP, login
-    audit/                  # auditoría (servicio)
-    notifications/          # notificaciones y correos (servicio)
-  recruitment/
-    postulantes/            # perfil y hoja de vida
-    empresas/               # empresa y validación GADOR
-    catalogos/              # catálogos del dominio
-    ofertas/                # ofertas, postulaciones y favoritas
-  dashboard/                # presentación y read models
+core/                       kernel transversal (modelos base, permisos, storage)
+apps/platform/              cuentas, auditoría, notificaciones
+apps/recruitment/           catálogos, empresas, postulantes, ofertas
+apps/dashboard/             paneles por rol y reportes
+templates/, static/, assets/  interfaz y estilos
+docs/                       manuales, diagrama, dump SQL y diccionario
 ```
 
-Ver `docs/ARQUITECTURA.md` para reglas de dependencia.
+El detalle de la arquitectura y las reglas de dependencia está en
+docs/ARQUITECTURA.md.
 
-## Instalación
+## Ejecución en local
 
 ```bash
-cp .env.example .env
-# completar credenciales en .env
-
+cp .env.example .env         # completar las claves de seed
 uv sync
-npm install
-npm run css:build
 
 python manage.py migrate
 python manage.py seed_catalogos
@@ -48,105 +98,37 @@ python manage.py seed_ofertas
 python manage.py runserver
 ```
 
-## Tests
+Corre en SQLite con DEMO_MODE=True: el código de verificación se muestra en
+pantalla y no se envía ningún SMS. Los seeds cargan catálogos, usuarios,
+empresas y ofertas de demostración.
+
+## Pruebas
 
 ```bash
 python manage.py test --settings=config.settings.test
-python manage.py check
-python manage.py makemigrations --check --dry-run
 ```
 
-## Storage
+159 tests sobre modelos, casos de uso, vistas, permisos, auditoría, storage y
+SMS. Verificados en SQLite y en PostgreSQL 15.
 
-### Local
+## Despliegue
 
-```env
-STORAGE_BACKEND=local
-```
+La demo corre en un VPS simple en Vultr, región Chile, para tener bajo ping
+desde Oruro y Bolivia. Ubuntu con PostgreSQL, Gunicorn (un worker), Nginx y
+HTTPS con Let's Encrypt, sin contenedores. El detalle operativo está en el
+manual técnico.
 
-- Fotos públicas: `media/`
-- CV privados: `private_media/`
+## Siguientes pasos
 
-### Cloudflare R2 / S3
+1. Redis como cache compartida si se escala a más de un worker.
+2. CAPTCHA en el registro público.
+3. Notificaciones push de la PWA y correos transaccionales.
+4. Empaquetar la PWA como TWA para publicarla en Google Play.
+5. Separar los buckets de R2 en público y privado para producción real.
 
-```env
-STORAGE_BACKEND=s3
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_STORAGE_BUCKET_NAME=<bucket-publico>
-AWS_PRIVATE_STORAGE_BUCKET_NAME=<bucket-privado>
-AWS_S3_ENDPOINT_URL=https://<account-id>.r2.cloudflarestorage.com
-AWS_S3_REGION_NAME=auto
-AWS_S3_CUSTOM_DOMAIN=
-AWS_S3_ADDRESSING_STYLE=
-AWS_S3_SIGNATURE_VERSION=s3v4
-AWS_QUERYSTRING_EXPIRE=3600
-```
+## Limitaciones de la versión demo
 
-- Las fotos usan el storage público.
-- Los CV usan el storage privado.
-- La descarga de CV sigue pasando por la vista con permisos.
-- El seed usa el storage configurado porque guarda mediante `perfil.cv.save(...)`.
-- Si cambiás de local a R2, los archivos existentes **no se migran solos**. Hay que correr el seed con el storage destino o migrar los archivos con un comando aparte.
-
-## SMS con Textbee
-
-Para enviar SMS reales:
-
-```env
-DEMO_MODE=False
-TEXTBEE_API_KEY=...
-TEXTBEE_DEVICE_ID=...
-TEXTBEE_BASE_URL=https://api.textbee.dev/api/v1
-TEXTBEE_TIMEOUT_SECONDS=10
-```
-
-El teléfono Android de Textbee debe estar online y con la app activa.
-
-Prueba manual:
-
-```bash
-python manage.py probar_sms +59171234567
-```
-
-Con `DEMO_MODE=True` el código se muestra en la pantalla de verificación y no se envía SMS.
-
-## Login
-
-El login tiene throttle por IP, no bloquea cuentas:
-
-- 5 intentos fallidos desde una IP → timeout de 15 minutos.
-- Un login exitoso limpia el contador.
-- El mensaje se muestra en el mismo formulario.
-
-Variables:
-
-```env
-LOGIN_MAX_ATTEMPTS=5
-LOGIN_TIMEOUT_SECONDS=900
-```
-
-En producción con varios workers, usar una cache compartida como Redis.
-
-## Flujo de demo
-
-1. Registrar empresa.
-2. GADOR valida la empresa.
-3. Empresa crea una oferta.
-4. GADOR revisa y publica.
-5. Registrar postulante y completar perfil + CV.
-6. Postular a una oferta.
-7. Empresa ve el postulante y descarga su CV.
-8. Empresa cambia el estado de la postulación.
-9. Postulante ve el estado en “Mis postulaciones”.
-
-## Roadmap
-
-- Soporte PostgreSQL como base de datos principal.
-- Migrar el throttle de login a una cache compartida (Redis) en producción.
-- Cambio de contraseña para usuarios autenticados.
-- Recuperación de contraseña por email.
-- Aplicación PWA instalable (manifest, service worker y página offline).
-- Correos transaccionales con Brevo.
-- Push notifications.
-- Configurar buckets reales de R2/Cloudflare.
+- Cambio de contraseña y recuperación por correo: visibles pero deshabilitados
+  en el panel "Mi cuenta".
+- El código de verificación se muestra en pantalla (modo demo).
+- El bloqueo de intentos de login usa cache en proceso: válido con un worker.
