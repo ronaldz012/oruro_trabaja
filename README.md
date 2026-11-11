@@ -10,9 +10,9 @@ ofertas y GADOR valida, publica y audita todo el proceso.
 |---|---|
 | Demo en vivo | https://demo-gador.ronaldzepita.com |
 | Video de demostración (2 min) | https://youtu.be/sa92ydyRYA8 |
-| Manual de usuario | docs/Manual_de_usuario_%20Oruro%20Trabaja.pdf |
-| Manual técnico | docs/Manual%20técnico_%20Oruro_Trabaja.pdf |
-| Diccionario de datos (PDF) | docs/Diccionario_de%20datos_%20Oruro%20Trabaja.pdf |
+| Manual de usuario | docs/manual_usuario.pdf |
+| Manual técnico | docs/manual_tecnico.pdf |
+| Diccionario de datos (PDF) | docs/diccionario_datos.pdf |
 | Diccionario de datos (fuente) | docs/diccionario_datos.md |
 | Dump de la base de datos | docs/oruro_trabaja.sql |
 | Arquitectura | docs/ARQUITECTURA.md |
@@ -132,3 +132,7 @@ manual técnico.
   en el panel "Mi cuenta".
 - El código de verificación se muestra en pantalla (modo demo).
 - El bloqueo de intentos de login usa cache en proceso: válido con un worker.
+
+---
+
+Desarrollado por Ronald Zepita. Contacto y portfolio: ronaldzepita.com · hi@ronaldzepita.com
