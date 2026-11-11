@@ -1,4 +1,4 @@
-from .base import *  # noqa: F403
+from .base import *
 
 DEBUG = False
 
@@ -10,3 +10,6 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
+
+# Estáticos servidos por whitenoise: comprimidos y con nombre cacheable.
+STORAGES["staticfiles"]["BACKEND"] = "whitenoise.storage.CompressedManifestStaticFilesStorage"
