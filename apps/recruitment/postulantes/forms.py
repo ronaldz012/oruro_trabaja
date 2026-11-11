@@ -24,7 +24,7 @@ class RegistroPostulanteForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "class": "input",
-                "placeholder": "1234567 LP",
+                "placeholder": "1234567",
                 "autocomplete": "off",
             }
         ),
@@ -57,7 +57,7 @@ class RegistroPostulanteForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "class": "input",
-                "placeholder": "+591 71234567",
+                "placeholder": "71234567",
                 "autocomplete": "tel",
                 "inputmode": "tel",
             }
